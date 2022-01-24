@@ -8,7 +8,7 @@ import PageSection from '../../Types/PageSection';
 
 export default function getEvents(month: number, date: number, onError: () => any): Promise<Event[]> {
     return new Promise(resolve => {
-        wiki().page(`${dates.monthsArray[month]}_${date}`).then(page => page.content()).then(result => {
+        wiki().page(`${dates.monthsArray[month - 1]}_${date}`).then(page => page.content()).then(result => {
             if (result) {
                 const page = result as unknown as PageSection; // Temp measure until my PR gets approved in wikijs
                 const eventsString = page[0].items ? `${page[0].items[0].content}\n${page[0].items[1].content}` : page[0].content;
@@ -18,7 +18,7 @@ export default function getEvents(month: number, date: number, onError: () => an
                     const currentEventDate = new Date(`${month + 1}/${date}/${new Date().getFullYear()}`);
                     const eventDate = new Date(`${month + 1}/${date}/${splitEvent[0]}`);
                     return ({
-                        month: dates.monthsArray[month] as MonthString,
+                        month: dates.monthsArray[month - 1] as MonthString,
                         day: dates.daysArray[date - 1] as MonthDayString,
                         currentWeekDay: dates.weekDaysArray[currentEventDate.getDay()] as WeekDayString,
                         eventWeekDay: dates.weekDaysArray[eventDate.getDay()] as WeekDayString,
