@@ -1,13 +1,13 @@
-import { MonthString, MonthDayString, WeekDayString } from '../../Types/Dates';
-import Event from '../../Types/Event';
 import wiki from 'wikijs';
-
 import dates from '../../dates.json';
-
+import Event from '../../Types/Event';
+import EventsObject from '../../Types/EventsObject';
 import PageSection from '../../Types/PageSection';
+import { MonthString, MonthDayString, WeekDayString } from '../../Types/Dates';
 
-export default function getEvents(month: number, date: number, onError: () => any): Promise<Event[]> {
+export default function getEvents(month: number, date: number, onError: () => any): Promise<EventsObject> {
     return new Promise(resolve => {
+        const sourceURL = `https://en.wikipedia.org/wiki/${dates.monthsArray[month]}_${date}`;
         wiki().page(`${dates.monthsArray[month]}_${date}`).then(page => page.content()).then(result => {
             if (result) {
                 const page = result as unknown as PageSection; // Temp measure until my PR gets approved in wikijs
@@ -24,10 +24,16 @@ export default function getEvents(month: number, date: number, onError: () => an
                         eventWeekDay: dates.weekDaysArray[eventDate.getDay()] as WeekDayString,
                         year: parseInt(splitEvent[0]),
                         content: splitEvent[1],
+                        sourceURL,
                     });
                 });
 
-                resolve(events);
+                resolve({
+                    events,
+                    sourceURL,
+                    month: dates.monthsArray[month] as MonthString,
+                    day: dates.daysArray[date - 1] as MonthDayString,
+                });
             } else {
                 onError();
             }

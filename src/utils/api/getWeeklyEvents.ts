@@ -8,7 +8,7 @@ export default function getWeeklyEvents(onError?: () => any): Promise<WeeklyEven
         const totalEvents: number[] = [];
         const date = new Date();
         setInterval(async () => {
-            const events = await getEvents(date.getMonth(), date.getDate(), () => {
+            const { events } = await getEvents(date.getMonth(), date.getDate(), () => {
                 onError();
                 clearInterval();
             });

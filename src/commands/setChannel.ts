@@ -18,8 +18,11 @@ export async function execute(interaction: CommandInteraction, database: Keyv) {
 
                 const successEmbed = new MessageEmbed()
                     .setTitle(`This channel will now receive ${type} events!`)
-                    .setFooter(`${config.default_footer.text} • ${type === 'weekly' ? 'Weekly' : 'Daily'} Events`, config.default_footer.icon_link)
-                    .setColor(config.default_hex as ColorResolvable);
+                    .setColor(config.default_hex as ColorResolvable)
+                    .setFooter({
+                        text: `${config.default_footer.text} • ${type === 'weekly' ? 'Weekly' : 'Daily'} Events`,
+                        iconURL: config.default_footer.iconURL,
+                    });
                 if (type === 'weekly') successEmbed.setDescription('A message with historical events for each day of the week will now send in this channel every Monday at 12 PM CST.');
                 if (type === 'weekly' && pingRole) successEmbed.setDescription(`A message with historical events for each day of the week will now send in this channel every Monday at 12 PM CST and it will ping <@&${pingRole.id}>.`);
                 if (type === 'daily') successEmbed.setDescription('A message with a historical event for the day will now send in this channel everyday at 12 PM CST.');

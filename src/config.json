@@ -4,7 +4,7 @@
     "error_hex": "#d40e0e",
     "default_footer": {
         "text": "Historian Bot",
-        "icon_link": "https://cdn.discordapp.com/attachments/747968834031321148/821397637601034250/logo.png"
+        "iconURL": "https://cdn.discordapp.com/attachments/747968834031321148/821397637601034250/logo.png"
     },
     "emojis": {
         "arrow_left": "<:arrowleft:934588322251149312>",
