@@ -5,4 +5,5 @@ export default interface EventsObject {
     events: Event[],
     month: MonthString,
     day: MonthDayString,
+    sourceURL: string,
 }

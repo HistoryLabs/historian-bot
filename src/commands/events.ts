@@ -20,6 +20,7 @@ export async function execute(interaction: CommandInteraction) {
 
         const eventsEmbed = new MessageEmbed()
             .setTitle(`${eventsData.month} ${eventsData.day}`)
+            .setURL(eventsData.sourceURL)
             .setColor(config.default_hex as ColorResolvable)
             .setFooter({
                 text: `${config.default_footer.text} • Page 1 of ${eventsPages.length}`,

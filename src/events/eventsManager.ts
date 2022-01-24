@@ -19,6 +19,7 @@ export async function execute(client: Client, database: Keyv) {
             const event = await getDailyEvent();
             const eventEmbed = new MessageEmbed()
                 .setTitle(`${event.eventWeekDay}, ${event.month} ${event.day} (${event.year})`)
+                .setURL(event.sourceURL)
                 .setDescription(event.content)
                 .setColor(config.default_hex as ColorResolvable)
                 .setFooter({ text: `Daily Events • Randomly selected from ${event.totalEvents} events` });;

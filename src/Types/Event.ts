@@ -7,5 +7,6 @@ export default interface Event {
     eventWeekDay: WeekDayString,
     year: number,
     content: string,
+    sourceURL: string,
     totalEvents?: number,
 }
