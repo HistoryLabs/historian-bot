@@ -3,7 +3,6 @@ import sendError from '../utils/sendError';
 import sendReply from '../utils/sendReply';
 import getEvents from '../utils/api/getEvents';
 import splitArray from '../utils/splitArray';
-import dates from '../dates.json';
 import config from '../config.json';
 
 export const name = 'events';
@@ -13,19 +12,19 @@ export async function execute(interaction: CommandInteraction) {
     if (month >= 1 && month <= 12 && date >= 1 && date <= 30) {
         interaction.deferReply();
 
-        const events = await getEvents(month, date, () => {
+        const eventsData = await getEvents(month - 1, date, () => {
             sendError(interaction, `We were unable to find events for that date, please try again. If the issue persists, please create a ticket in the [Historian Bot Support Server](${config.server_invite}).`);
         });
 
-        const eventsPages = splitArray(events, 5);
+        const eventsPages = splitArray(eventsData.events, 5);
 
         const eventsEmbed = new MessageEmbed()
-            .setTitle(`${dates.monthsArray[month - 1]} ${dates.daysArray[date - 1]}`)
+            .setTitle(`${eventsData.month} ${eventsData.day}`)
+            .setColor(config.default_hex as ColorResolvable)
             .setFooter({
                 text: `${config.default_footer.text} • Page 1 of ${eventsPages.length}`,
                 iconURL: config.default_footer.iconURL,
-            })
-            .setColor(config.default_hex as ColorResolvable);
+            });
         const backButton = new MessageButton()
             .setCustomId('PAGE_BACK')
             .setStyle('PRIMARY')
