@@ -21,7 +21,10 @@ export async function execute(interaction: CommandInteraction) {
 
         const eventsEmbed = new MessageEmbed()
             .setTitle(`${dates.monthsArray[month - 1]} ${dates.daysArray[date - 1]}`)
-            .setFooter(`${config.default_footer.text} • Page 1 of ${eventsPages.length}`, config.default_footer.icon_link)
+            .setFooter({
+                text: `${config.default_footer.text} • Page 1 of ${eventsPages.length}`,
+                iconURL: config.default_footer.iconURL,
+            })
             .setColor(config.default_hex as ColorResolvable);
         const backButton = new MessageButton()
             .setCustomId('PAGE_BACK')
@@ -48,7 +51,7 @@ export async function execute(interaction: CommandInteraction) {
 
                 const collector = interaction.channel.createMessageComponentCollector({
                     time: 300000,
-                    interactionType: 'MESSAGE_COMPONENT',
+                    componentType: 'BUTTON',
                     message: reply,
                 });
 
@@ -63,7 +66,10 @@ export async function execute(interaction: CommandInteraction) {
                         eventsEmbed.addField(`Year: ${event.year}`, event.content);
                     });
 
-                    eventsEmbed.setFooter(`${config.default_footer.text} • Page ${currentPage + 1} of ${eventsPages.length}`, config.default_footer.icon_link)
+                    eventsEmbed.setFooter({
+                        text: `${config.default_footer.text} • Page ${currentPage + 1} of ${eventsPages.length}`,
+                        iconURL: config.default_footer.iconURL,
+                    });
                     backButton.setDisabled(eventsPages[currentPage - 1] === undefined);
                     forwardButton.setDisabled(eventsPages[currentPage + 1] === undefined);
 
