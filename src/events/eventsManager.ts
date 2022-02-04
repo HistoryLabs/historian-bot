@@ -45,7 +45,7 @@ export async function execute(client: Client, database: Keyv) {
                 .setColor(config.default_hex as ColorResolvable)
                 .setFooter({ text: `Weekly Events • Randomly selected from an average of ${weeklyEvents.avgEvents} events per day` });
             weeklyEvents.events.forEach(event => {
-                eventsEmbed.setDescription(eventsEmbed.description + `\n\n**${event.currentWeekDay}, ${event.month} ${event.day} (${event.year})** - ${event.content}`);
+                eventsEmbed.setDescription(eventsEmbed.description + `\n\n**[${event.currentWeekDay}, ${event.month} ${event.day} (${event.year})](${event.sourceURL})** - ${event.content}`);
             });
 
             client.guilds.cache.map(g => g.id).forEach(async id => {
