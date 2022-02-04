@@ -22,7 +22,7 @@ export async function execute(client: Client, database: Keyv) {
                 .setURL(event.sourceURL)
                 .setDescription(event.content)
                 .setColor(config.default_hex as ColorResolvable)
-                .setFooter({ text: `Daily Events • Randomly selected from ${event.totalEvents} events` });;
+                .setFooter({ text: `Daily Events • Randomly selected from ${event.totalEvents} events`, iconURL: config.default_footer.iconURL });;
 
             client.guilds.cache.map(g => g.id).forEach(async id => {
                 const guildData: GuildData = await database.get(`guild_data_${id}`);
@@ -43,7 +43,7 @@ export async function execute(client: Client, database: Keyv) {
                 .setTitle(`Events this week (${weeklyEvents.events[0].month} ${weeklyEvents.events[0].day} - ${weeklyEvents.events[6].month} ${weeklyEvents.events[6].day})`)
                 .setDescription('')
                 .setColor(config.default_hex as ColorResolvable)
-                .setFooter({ text: `Weekly Events • Randomly selected from an average of ${weeklyEvents.avgEvents} events per day` });
+                .setFooter({ text: `Weekly Events • Randomly selected from an average of ${weeklyEvents.avgEvents} events per day`, iconURL: config.default_footer.iconURL });
             weeklyEvents.events.forEach(event => {
                 eventsEmbed.setDescription(eventsEmbed.description + `\n\n**[${event.currentWeekDay}, ${event.month} ${event.day} (${event.year})](${event.sourceURL})** - ${event.content}`);
             });
