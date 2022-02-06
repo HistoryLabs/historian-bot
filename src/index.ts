@@ -25,9 +25,11 @@ database.on('error', err => console.error('Keyv connection error:', err));
 const guildDataTemplate: GuildData = {
     weekly: {
         channelId: null,
+        time: 12,
     },
     daily: {
         channelId: null,
+        time: 12,
     }
 }
 
@@ -61,6 +63,17 @@ const commands = [
             .setRequired(true)
             .addChoice('Daily', 'daily')
             .addChoice('Weekly', 'weekly')
+    ).addStringOption(option => 
+        option.setName('time')
+            .setDescription('The time you want events sent (in CST - default is 12 PM)')
+            .addChoice('12 AM', '0').addChoice('1 AM', '1').addChoice('2 AM', '2')
+            .addChoice('3 AM', '3').addChoice('4 AM', '4').addChoice('5 AM', '5')
+            .addChoice('6 AM', '6').addChoice('7 AM', '7').addChoice('8 AM', '8')
+            .addChoice('9 AM', '9').addChoice('10 AM', '10').addChoice('11 AM', '11')
+            .addChoice('12 PM', '12').addChoice('1 PM', '13').addChoice('2 PM', '14')
+            .addChoice('3 PM', '15').addChoice('4 PM', '16').addChoice('5 PM', '17')
+            .addChoice('6 PM', '18').addChoice('7 PM', '19').addChoice('8 PM', '20')
+            .addChoice('9 PM', '21').addChoice('10 PM', '22').addChoice('11 PM', '23'),
     ).addRoleOption(option => 
         option.setName('role').setDescription('A role to ping when events are sent')
     ),
