@@ -9,12 +9,12 @@ export const name = 'setChannel';
 export async function execute(interaction: CommandInteraction, database: Keyv) {
     const guildData: GuildData = await database.get(`guild_data_${interaction.guildId}`);
     const type = interaction.options.getString('interval');
-    const time = interaction.options.getString('time');
+    const time = interaction.options.getString('time') ? parseInt(interaction.options.getString('time')) : 12;
     const pingRole = interaction.options.getRole('role');
     if (interaction.guild.members.cache.get(interaction.user.id).permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
             if (!guildData[type].channelId) {
                 guildData[type].channelId = interaction.channelId;
-                guildData[type].time = time ? parseInt(time) : 12;
+                guildData[type].time = time;
                 if (pingRole) guildData[type].pingRole = pingRole.id;
                 database.set(`guild_data_${interaction.guildId}`, guildData);
 
@@ -26,8 +26,8 @@ export async function execute(interaction: CommandInteraction, database: Keyv) {
                         iconURL: config.default_footer.iconURL,
                     });
                 
-                const hours = ((parseInt(time) + 11) % 12 + 1);
-                const suffix = parseInt(time) <= 11 ? 'AM' : 'PM';
+                const hours = (time + 11) % 12 + 1;
+                const suffix = time <= 11 ? 'AM' : 'PM';
                 const timeString = `${hours} ${suffix}`;
 
                 if (type === 'weekly') successEmbed.setDescription(`A message with historical events for each day of the week will now send in this channel every Monday at ${timeString} CST.`);
