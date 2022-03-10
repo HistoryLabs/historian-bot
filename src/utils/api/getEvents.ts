@@ -35,8 +35,10 @@ export default function getEvents(month: number, date: number, onError: () => an
                     day: dates.daysArray[date - 1] as MonthDayString,
                 });
             } else {
-                onError();
+                if (onError) onError();
             }
-        }).catch(() => onError());
+        }).catch(() => {
+            if (onError) onError();
+        });
     });
 }
