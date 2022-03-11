@@ -108,7 +108,7 @@ rest.put(
 });
 
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+    if (!interaction.isCommand() || !interaction.channel) return;
 
     if (interaction.commandName === 'help') {
         collections.commands.get('help').execute(interaction);
