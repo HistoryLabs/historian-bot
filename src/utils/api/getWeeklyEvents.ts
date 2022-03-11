@@ -9,7 +9,7 @@ export default function getWeeklyEvents(onError?: () => any): Promise<WeeklyEven
         const date = new Date();
         setInterval(async () => {
             const { events } = await getEvents(date.getMonth(), date.getDate(), () => {
-                onError();
+                if (onError) onError();
                 clearInterval();
             });
             
