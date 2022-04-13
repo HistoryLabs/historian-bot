@@ -1,16 +1,15 @@
 import { Client, MessageEmbed, ColorResolvable, TextChannel } from 'discord.js';
-import Keyv from 'keyv';
 import getDailyEvent from '../utils/api/getDailyEvent';
 import config from '../config.json';
 import GuildData from '../Types/GuildData';
 import getWeeklyEvents from '../utils/api/getWeeklyEvents';
+import Database from '../utils/Database';
 
 export const name = 'eventsManager';
-export async function execute(client: Client, database: Keyv) {
+export async function execute(client: Client, database: Database) {
     const handleError = (guildData: GuildData, type: 'weekly'|'daily', id: string) => {
         guildData[type].channelId = null;
-        if (guildData[type].pingRole) guildData[type].pingRole = null;
-        database.set(`guild_data_${id}`, guildData);
+        database.updateGuild(id, guildData);
     }
 
     setInterval(async () => {
@@ -24,15 +23,16 @@ export async function execute(client: Client, database: Keyv) {
                 .setColor(config.default_hex as ColorResolvable)
                 .setFooter({ text: `Daily Events • Randomly selected from ${event.totalEvents} events`, iconURL: config.default_footer.iconURL });;
 
-            client.guilds.cache.map(g => g.id).forEach(async id => {
-                const guildData: GuildData = await database.get(`guild_data_${id}`);
-                if (guildData.daily.channelId) {
-                    if (guildData.daily.time === date.getHours()) {
-                        const dailyChannel = client.channels.cache.get(guildData.daily.channelId) as TextChannel;
+            const allGuilds = database.getAllGuilds();
+
+            allGuilds.forEach((guild) => {
+                if (guild.daily.channelId) {
+                    if (guild.daily.time === date.getHours()) {
+                        const dailyChannel = client.channels.cache.get(guild.daily.channelId) as TextChannel;
                         if (dailyChannel) {
-                            dailyChannel.send({ content: guildData.daily.pingRole ? `<@&${guildData.daily.pingRole}>` : undefined, embeds: [eventEmbed] }).catch(() => handleError(guildData, 'daily', id));
+                            dailyChannel.send({ content: guild.daily.pingRole ? `<@&${guild.daily.pingRole}>` : undefined, embeds: [eventEmbed] }).catch(() => handleError(guild, 'daily', guild._id));
                         } else {
-                            handleError(guildData, 'daily', id);
+                            handleError(guild, 'daily', guild._id);
                         }
                     }
                 }
@@ -50,15 +50,16 @@ export async function execute(client: Client, database: Keyv) {
                 eventsEmbed.setDescription(eventsEmbed.description + `\n\n**[${event.currentWeekDay}, ${event.month} ${event.day} (${event.year})](${event.sourceURL})** - ${event.content}`);
             });
 
-            client.guilds.cache.map(g => g.id).forEach(async id => {
-                const guildData: GuildData = await database.get(`guild_data_${id}`);
-                if (guildData.weekly.channelId) {
-                    if (guildData.weekly.time === date.getHours()) {
-                        const weeklyChannel = client.channels.cache.get(guildData.weekly.channelId) as TextChannel;
+            const allGuilds = database.getAllGuilds();
+
+            allGuilds.forEach((guild) => {
+                if (guild.weekly.channelId) {
+                    if (guild.weekly.time === date.getHours()) {
+                        const weeklyChannel = client.channels.cache.get(guild.weekly.channelId) as TextChannel;
                         if (weeklyChannel) {
-                            weeklyChannel.send({ content: guildData.weekly.pingRole ? `<@&${guildData.weekly.pingRole}>` : undefined, embeds: [eventsEmbed] }).catch(() => handleError(guildData, 'weekly', id));
+                            weeklyChannel.send({ content: guild.weekly.pingRole ? `<@&${guild.weekly.pingRole}>` : undefined, embeds: [eventsEmbed] }).catch(() => handleError(guild, 'weekly', guild._id));
                         } else {
-                            handleError(guildData, 'weekly', id);
+                            handleError(guild, 'weekly', guild._id);
                         }
                     }
                 }

@@ -1,4 +1,5 @@
 export default interface GuildData {
+    _id?: string,
     weekly: {
         channelId: string,
         time: number,

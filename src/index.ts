@@ -6,11 +6,11 @@ import { Routes } from 'discord-api-types/v9';
 import { AutoPoster } from 'topgg-autoposter';
 import config from './config.json';
 import apiTest from './tests/api.test';
-import Keyv from 'keyv';
 import wiki from 'wikijs';
 import chalk from 'chalk';
 import CollectionsObject from './Types/CollectionsObject';
 import GuildData from './Types/GuildData';
+import Database from './utils/Database';
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 const collections: CollectionsObject = {
@@ -18,8 +18,7 @@ const collections: CollectionsObject = {
     commands: new Collection<string, any>(),
 }
 
-const database = new Keyv('sqlite://database.sqlite');
-database.on('error', err => console.error('Keyv connection error:', err));
+let database = new Database();
 
 const guildDataTemplate: GuildData = {
     weekly: {
@@ -139,12 +138,11 @@ client.once('ready', async () => {
 });
 
 client.on('guildCreate', (guild) => {
-    database.set(`guild_data_${guild.id}`, guildDataTemplate);
+    database.addGuild(guild.id, guildDataTemplate);
 });
 
 client.on('guildDelete', async (guild) => {
-    const guildData: GuildData = await database.get(`guild_data_${guild.id}`);
-    if (guildData) database.delete(`guild_data_${guild.id}`);
+    database.removeGuild(guild.id);
 });
 
 client.login(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);
