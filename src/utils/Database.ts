@@ -8,7 +8,7 @@ interface GuildResult {
 }
 
 export default class Database {
-    private guilds: Collection<GuildData>
+    public guilds: Collection<GuildData>
 
     constructor () {
         MongoClient.connect('mongodb://localhost:27017/', (err, mongoClient) => {
