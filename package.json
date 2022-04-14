@@ -10,6 +10,7 @@
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.6.0",
     "mongodb": "^4.5.0",
+    "node-cron": "^3.0.0",
     "node-fetch": "^2.6.1",
     "topgg-autoposter": "^2.0.1",
     "wikijs": "^6.3.3"
@@ -31,6 +32,7 @@
   },
   "homepage": "https://github.com/HistoryLabs/historian-bot#readme",
   "devDependencies": {
+    "@types/node-cron": "^3.0.1",
     "dotenv": "^11.0.0",
     "nodemon": "^2.0.15",
     "ts-node": "^10.4.0",
