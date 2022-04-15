@@ -19,10 +19,6 @@ export default class Database {
         });
     }
 
-    public getAllGuilds() {
-        return this.guilds.find();
-    }
-
     public async findGuild(id: string): Promise<GuildResult|null> {
         const guild = await this.guilds.findOne({
             _id: id,

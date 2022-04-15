@@ -5,24 +5,20 @@ import Database from '../utils/Database';
 
 export const name = 'dataManager';
 export async function execute(client: Client, database: Database, guildDataTemplate: GuildData) {
-    let guildCounter: number = 0;
+    let newGuilds: GuildData[] = [];
+    const guilds = await database.guilds.find().toArray();
+    const guildIds = guilds.map(g => g._id);
     client.guilds.cache.forEach(async g => {
-        let guild = await database.findGuild(g.id);
-        if (!guild) {
-            database.addGuild(g.id, guildDataTemplate);
-            guildCounter++;
-        } else {
-            if (!guild.data.daily.time) {
-                guild.data.daily.time = 12;
-                guild.update(guild.data);
-            }
-
-            if (!guild.data.weekly.time) {
-                guild.data.weekly.time = 12;
-                guild.update(guild.data);
-            }
+        if (!guildIds.includes(g.id)) {
+            newGuilds.push({
+                ...guildDataTemplate,
+                _id: g.id,
+            });
         }
 
-        if (g.id === client.guilds.cache.last().id) console.log(`${chalk.yellow('[DataManager]')} Created guild data for ${guildCounter} guild(s)`);
+        if (g.id === client.guilds.cache.last().id) {
+            await database.guilds.insertMany(newGuilds);
+            console.log(`${chalk.yellow('[DataManager]')} Created guild data for ${newGuilds.length} guild(s)`);
+        }
     });
 }
