@@ -17,7 +17,7 @@ export async function execute(client: Client, database: Database, guildDataTempl
         }
 
         if (g.id === client.guilds.cache.last().id) {
-            await database.guilds.insertMany(newGuilds);
+            if (newGuilds.length > 0) await database.guilds.insertMany(newGuilds);
             console.log(`${chalk.yellow('[DataManager]')} Created guild data for ${newGuilds.length} guild(s)`);
         }
     });
