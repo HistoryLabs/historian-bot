@@ -11,7 +11,7 @@ export default class Database {
     public guilds: Collection<GuildData>
 
     constructor () {
-        MongoClient.connect('mongodb://localhost:27017/', (err, mongoClient) => {
+        MongoClient.connect(`mongodb://${process.env.NODE_ENV === 'DEV' ? 'localhost' : 'mongo'}:27017/`, (err, mongoClient) => {
             if (err || !mongoClient) throw `Mongo Connection Error: ${err ? err : 'CLIENT UNDEFINED'}`;
             console.log(`${chalk.yellow('[MongoDB]')} Connected to database.`)
             let database = mongoClient.db(process.env.DB_NAME);
