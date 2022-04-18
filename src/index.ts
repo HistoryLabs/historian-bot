@@ -4,14 +4,13 @@ import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { AutoPoster } from 'topgg-autoposter';
-import credentials from './credentials.json';
 import config from './config.json';
 import apiTest from './tests/api.test';
-import Keyv from 'keyv';
 import wiki from 'wikijs';
 import chalk from 'chalk';
 import CollectionsObject from './Types/CollectionsObject';
 import GuildData from './Types/GuildData';
+import Database from './utils/Database';
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 const collections: CollectionsObject = {
@@ -19,8 +18,7 @@ const collections: CollectionsObject = {
     commands: new Collection<string, any>(),
 }
 
-const database = new Keyv('sqlite://database.sqlite');
-database.on('error', err => console.error('Keyv connection error:', err));
+let database = new Database();
 
 const guildDataTemplate: GuildData = {
     weekly: {
@@ -96,7 +94,7 @@ const commands = [
     ),
 ];
 
-const rest = new REST({ version: '9' }).setToken(process.env.NODE_ENV === 'DEV' ? credentials.dev_token : credentials.prod_token);
+const rest = new REST({ version: '9' }).setToken(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);
 
 console.log(`${chalk.yellow('[SlashCommands]')}  Started refreshing application (/) commands`);
 
@@ -133,19 +131,18 @@ client.once('ready', async () => {
     collections.events.get('eventsManager').execute(client, database);
     collections.events.get('dataManager').execute(client, database, guildDataTemplate);
     client.user.setActivity(`/help in ${client.guilds.cache.size} servers!`, {type: 'WATCHING'});
-    if (process.env.NODE_ENV !== 'DEV') AutoPoster(credentials.dbl_token, client);
+    if (process.env.NODE_ENV !== 'DEV') AutoPoster(process.env.DBL_TOKEN, client);
     setInterval(() => {
         client.user.setActivity(`/help in ${client.guilds.cache.size} servers!`, {type: 'WATCHING'});
     }, 1800000);
 });
 
 client.on('guildCreate', (guild) => {
-    database.set(`guild_data_${guild.id}`, guildDataTemplate);
+    database.addGuild(guild.id, guildDataTemplate);
 });
 
 client.on('guildDelete', async (guild) => {
-    const guildData: GuildData = await database.get(`guild_data_${guild.id}`);
-    if (guildData) database.delete(`guild_data_${guild.id}`);
+    database.removeGuild(guild.id);
 });
 
-client.login(process.env.NODE_ENV === 'DEV' ? credentials.dev_token : credentials.prod_token);
+client.login(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);

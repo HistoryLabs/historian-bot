@@ -13,8 +13,8 @@ export default function getEvents(month: number, date: number, onError: () => an
                 const page = result as unknown as PageSection; // Temp measure until my PR gets approved in wikijs
                 const eventsString = page[0].items ? `${page[0].items[0].content}\n${page[0].items[1].content}` : page[0].content;
                 const eventsArray: string[] = eventsString.split('\n');
-                const events: Event[] = eventsArray.map(event => {
-                    const splitEvent: string[] = event.split(' – ');
+                const events: Event[] = eventsArray.filter(e => e.split(' – ').length === 2).map(event => {
+                    let splitEvent: string[] = event.split(' – ');
                     const currentEventDate = new Date(`${month + 1}/${date}/${new Date().getFullYear()}`);
                     const eventDate = new Date(`${month + 1}/${date}/${splitEvent[0]}`);
                     return ({

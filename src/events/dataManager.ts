@@ -1,28 +1,24 @@
 import { Client } from 'discord.js';
-import Keyv from 'keyv';
 import chalk from 'chalk';
 import GuildData from '../Types/GuildData';
+import Database from '../utils/Database';
 
 export const name = 'dataManager';
-export async function execute(client: Client, database: Keyv, guildDataTemplate: GuildData) {
-    let guildCounter: number = 0;
-    client.guilds.cache.forEach(async guild => {
-        const guildData: GuildData = await database.get(`guild_data_${guild.id}`);
-        if (!guildData) {
-            database.set(`guild_data_${guild.id}`, guildDataTemplate);
-            guildCounter++;
-        } else {
-            if (!guildData.daily.time) {
-                guildData.daily.time = 12;
-                database.set(`guild_data_${guild.id}`, guildData);
-            }
-
-            if (!guildData.weekly.time) {
-                guildData.weekly.time = 12;
-                database.set(`guild_data_${guild.id}`, guildData);
-            }
+export async function execute(client: Client, database: Database, guildDataTemplate: GuildData) {
+    let newGuilds: GuildData[] = [];
+    const guilds = await database.guilds.find().toArray();
+    const guildIds = guilds.map(g => g._id);
+    client.guilds.cache.forEach(async g => {
+        if (!guildIds.includes(g.id)) {
+            newGuilds.push({
+                ...guildDataTemplate,
+                _id: g.id,
+            });
         }
 
-        if (guild.id === client.guilds.cache.last().id) console.log(`${chalk.yellow('[DataManager]')} Created guild data for ${guildCounter} guild(s)`)
+        if (g.id === client.guilds.cache.last().id) {
+            if (newGuilds.length > 0) await database.guilds.insertMany(newGuilds);
+            console.log(`${chalk.yellow('[DataManager]')} Created guild data for ${newGuilds.length} guild(s)`);
+        }
     });
 }

@@ -61,6 +61,8 @@ export async function execute(interaction: CommandInteraction) {
                     if (i.customId === 'PAGE_BACK') currentPage--;
                     if (i.customId === 'PAGE_FORWARD') currentPage++;
 
+                    if (eventsPages[currentPage] === undefined) return;
+
                     eventsEmbed.setFields([]);
                     eventsPages[currentPage].forEach((event) => {
                         eventsEmbed.addField(`Year: ${event.year}`, event.content);
@@ -70,6 +72,7 @@ export async function execute(interaction: CommandInteraction) {
                         text: `${config.default_footer.text} • Page ${currentPage + 1} of ${eventsPages.length}`,
                         iconURL: config.default_footer.iconURL,
                     });
+
                     backButton.setDisabled(eventsPages[currentPage - 1] === undefined);
                     forwardButton.setDisabled(eventsPages[currentPage + 1] === undefined);
 
