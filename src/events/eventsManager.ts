@@ -35,7 +35,7 @@ export async function execute(client: Client, database: Database) {
         });
     }, { timezone: 'America/Chicago' });
 
-    cron.schedule('0 * * * MON', async (date) => {
+    cron.schedule('0 * * * 1', async (date) => {
         const weeklyEvents = await getWeeklyEvents();
         const eventsEmbed = new MessageEmbed()
             .setTitle(`Events this week (${weeklyEvents.events[0].month} ${weeklyEvents.events[0].day} - ${weeklyEvents.events[6].month} ${weeklyEvents.events[6].day})`)
