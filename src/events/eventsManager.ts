@@ -33,7 +33,7 @@ export async function execute(client: Client, database: Database) {
                 handleError(guild, 'daily', guild._id);
             }
         });
-    });
+    }, { timezone: 'America/Chicago' });
 
     cron.schedule('0 * * * MON', async (date) => {
         const weeklyEvents = await getWeeklyEvents();
@@ -57,5 +57,5 @@ export async function execute(client: Client, database: Database) {
                 handleError(guild, 'weekly', guild._id);
             }
         });
-    });
+    }, { timezone: 'America/Chicago' });
 }
