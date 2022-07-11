@@ -18,7 +18,11 @@ const collections: CollectionsObject = {
     commands: new Collection<string, any>(),
 }
 
-let database = new Database();
+const database = new Database();
+
+database.connect().then(() => {
+    client.login(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);
+});
 
 const guildDataTemplate: GuildData = {
     weekly: {
@@ -144,5 +148,3 @@ client.on('guildCreate', (guild) => {
 client.on('guildDelete', async (guild) => {
     database.removeGuild(guild.id);
 });
-
-client.login(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);

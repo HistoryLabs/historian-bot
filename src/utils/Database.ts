@@ -10,12 +10,15 @@ interface GuildResult {
 export default class Database {
     public guilds: Collection<GuildData>
 
-    constructor () {
-        MongoClient.connect(`mongodb://${process.env.NODE_ENV !== 'DEV' ? `${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@` : ''}${process.env.NODE_ENV === 'DEV' ? 'localhost' : 'mongo'}:27017/`, (err, mongoClient) => {
-            if (err || !mongoClient) throw `Mongo Connection Error: ${err ? err : 'CLIENT UNDEFINED'}`;
-            console.log(`${chalk.yellow('[MongoDB]')} Connected to database.`)
-            let database = mongoClient.db(process.env.DB_NAME);
-            this.guilds = database.collection<GuildData>('guilds');
+    public async connect() {
+        return new Promise<null>(resolve => {
+            MongoClient.connect(`mongodb://${process.env.NODE_ENV !== 'DEV' ? `${process.env.MONGO_INITDB_ROOT_USERNAME}:${process.env.MONGO_INITDB_ROOT_PASSWORD}@` : ''}${process.env.NODE_ENV === 'DEV' ? 'localhost' : 'mongo'}:27017/`, (err, mongoClient) => {
+                if (err || !mongoClient) throw `Mongo Connection Error: ${err ? err : 'CLIENT UNDEFINED'}`;
+                console.log(`${chalk.yellow('[MongoDB]')} Connected to database.`);
+                let database = mongoClient.db(process.env.DB_NAME);
+                this.guilds = database.collection<GuildData>('guilds');
+                resolve(null);
+            });
         });
     }
 
@@ -27,7 +30,7 @@ export default class Database {
         if (guild) {
             return ({
                 data: guild,
-                update: (data: GuildData) => this.updateGuild(guild._id as unknown as string, data),
+                update: (data: GuildData) => this.updateGuild(guild._id, data),
             });
         } else {
             return null;
