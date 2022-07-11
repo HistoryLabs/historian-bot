@@ -55,4 +55,11 @@ export async function execute(interaction: CommandInteraction) {
             sendError(i, 'Only the original command executor can find new events.');
         }
     });
+
+    setTimeout(() => {
+        interaction.editReply({
+            embeds: [eventEmbed],
+            components: [],
+        });
+    }, 300000);
 }
