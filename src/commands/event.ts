@@ -23,6 +23,8 @@ export async function execute(interaction: CommandInteraction) {
 
     const reply = await sendReply(interaction, { embeds: [eventEmbed], components: [eventRow], fetchReply: true });
 
+    let isCollectorExpired: boolean = false;
+
     const collector = interaction.channel.createMessageComponentCollector({
         time: 300000,
         componentType: 'BUTTON',
@@ -45,11 +47,13 @@ export async function execute(interaction: CommandInteraction) {
             ]});
 
             setTimeout(() => {
-                i.editReply({ components: [
-                    new MessageActionRow({
-                        components: [findNewButton],
-                    })
-                ]})
+                if (!isCollectorExpired) {
+                    i.editReply({ components: [
+                        new MessageActionRow({
+                            components: [findNewButton],
+                        })
+                    ]});
+                }
             }, 1000 * 30);
         } else {
             sendError(i, 'Only the original command executor can find new events.');
@@ -61,5 +65,7 @@ export async function execute(interaction: CommandInteraction) {
             embeds: [eventEmbed],
             components: [],
         });
+
+        isCollectorExpired = true;
     }, 300000);
 }
