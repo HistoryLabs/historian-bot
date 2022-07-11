@@ -1,7 +1,7 @@
-import { CommandInteraction, MessageEmbed, ColorResolvable } from 'discord.js';
+import { CommandInteraction, MessageEmbed, ColorResolvable, ButtonInteraction } from 'discord.js';
 import { error_hex } from '../config.json';
 
-export default function sendError(interaction: CommandInteraction, message: string) {
+export default function sendError(interaction: CommandInteraction|ButtonInteraction, message: string) {
     const errorEmbed = new MessageEmbed()
         .setDescription(message)
         .setColor(error_hex as ColorResolvable);
@@ -10,7 +10,7 @@ export default function sendError(interaction: CommandInteraction, message: stri
         interaction.editReply({ embeds: [errorEmbed] });
     } else {
         interaction.reply({ embeds: [errorEmbed], ephemeral: true }).catch(() => {
-            interaction.followUp({ embeds: [errorEmbed] }).catch(() => null);
+            interaction.followUp({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
         });
     } 
 }

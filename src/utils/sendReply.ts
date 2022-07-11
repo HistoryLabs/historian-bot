@@ -1,7 +1,7 @@
 import { CommandInteraction, InteractionReplyOptions, Message } from 'discord.js';
 import { APIMessage } from 'discord.js/node_modules/discord-api-types';
 
-export default function sendReply(interaction: CommandInteraction, options: InteractionReplyOptions): Promise<Message|APIMessage> {
+export default async function sendReply(interaction: CommandInteraction, options: InteractionReplyOptions): Promise<Message|APIMessage> {
     if (interaction.replied || interaction.deferred) {
         return interaction.editReply(options);
     } else {
