@@ -32,7 +32,7 @@ export async function execute(interaction: CommandInteraction) {
     collector.on('collect', async (i) => {
         i.deferUpdate();
 
-        if (i.user.id !== interaction.user.id) {
+        if (i.user.id === interaction.user.id) {
             const newEvent = await getDailyEvent(() => sendError(i, 'Failed to find new event. Please try again.'));
             const newEmbed = generateEventEmbed(newEvent);
 
