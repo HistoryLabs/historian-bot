@@ -24,8 +24,6 @@ export async function execute(interaction: CommandInteraction) {
 
     const reply = await sendReply(interaction, { embeds: [eventEmbed], components: [eventRow], fetchReply: true });
 
-    let isCollectorExpired: boolean = false;
-
     const collector = interaction.channel.createMessageComponentCollector({
         time: 300000,
         componentType: 'BUTTON',
@@ -39,23 +37,7 @@ export async function execute(interaction: CommandInteraction) {
             const newEvent = today.getRandom();
             const newEmbed = createEventEmbed(newEvent, today.month, today.day, today.totalResults);
 
-            const cooldownButton = new MessageButton().setCustomId('COOLDOWN').setDisabled(true).setStyle('DANGER').setLabel('30s Cooldown');
-
-            i.editReply({ embeds: [newEmbed], components: [
-                new MessageActionRow({
-                    components: [cooldownButton],
-                }),
-            ]});
-
-            setTimeout(() => {
-                if (!isCollectorExpired) {
-                    i.editReply({ components: [
-                        new MessageActionRow({
-                            components: [findNewButton],
-                        })
-                    ]});
-                }
-            }, 1000 * 30);
+            i.editReply({ embeds: [newEmbed] });
         } else {
             sendError(i, 'Only the original command executor can find new events.');
         }
@@ -66,8 +48,6 @@ export async function execute(interaction: CommandInteraction) {
             embeds: [eventEmbed],
             components: [],
         });
-
-        isCollectorExpired = true;
     });
 }
 
