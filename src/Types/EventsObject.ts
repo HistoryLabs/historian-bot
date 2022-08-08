@@ -7,4 +7,5 @@ export default interface EventsObject {
     day: MonthDayString;
     sourceURL: string;
     totalResults: number;
+    getRandom: () => Event;
 }

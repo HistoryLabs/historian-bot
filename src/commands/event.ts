@@ -1,5 +1,4 @@
 import { CommandInteraction, MessageButton, MessageActionRow, MessageEmbed, ColorResolvable } from 'discord.js';
-import getDailyEvent from '../utils/api/getDailyEvent';
 import sendError from '../utils/sendError';
 import sendReply from '../utils/sendReply';
 import config from '../config.json';
@@ -9,8 +8,7 @@ import Event from '../Types/Event';
 export const name = 'event';
 export async function execute(interaction: CommandInteraction) {
     const today = await getEvents(new Date().getMonth(), new Date().getDate(), () => sendError(interaction, 'An error occured while finding an event. Please try again.'));
-
-    const event = today.events[Math.floor(Math.random() * today.events.length)];
+    const event = today.getRandom();
 
     const findNewButton = new MessageButton()
         .setCustomId('FIND_NEW')
@@ -35,10 +33,10 @@ export async function execute(interaction: CommandInteraction) {
     });
 
     collector.on('collect', async (i) => {
-        i.deferUpdate();
+        await i.deferUpdate();
 
         if (i.user.id === interaction.user.id) {
-            const newEvent = await getDailyEvent(() => sendError(i, 'Failed to find new event. Please try again.'));
+            const newEvent = today.getRandom();
             const newEmbed = createEventEmbed(newEvent, today.month, today.day, today.totalResults);
 
             const cooldownButton = new MessageButton().setCustomId('COOLDOWN').setDisabled(true).setStyle('DANGER').setLabel('30s Cooldown');
