@@ -7,5 +7,5 @@ export default interface DateDto {
 interface DateEvent {
 	year: string;
 	yearInt: number;
-	event: string;
+	content: string;
 }

@@ -19,7 +19,7 @@ class EventsApi {
 	public async getDate(month: number, day: number, yearFilters?: FilterOptions): Promise<DateDto|null> {
 		const response = await this.axios.get<DateDto>('/date', {
 			params: {
-				month,
+				month: month + 1,
 				day,
 				minYear: yearFilters?.min,
 				maxYear: yearFilters?.max,
