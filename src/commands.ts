@@ -136,7 +136,19 @@ const commands = [
                 }
             )
     ),
-    new SlashCommandBuilder().setName('event').setDescription('Gives a historical event for the day'),
+    new SlashCommandBuilder().setName('event').setDescription('Gives a historical event for the day').addIntegerOption(option =>
+        option.setName('min')
+            .setDescription('The minimum year for the event (use negative for BC/BCE)')
+			.setMinValue(-500)
+			.setMaxValue(2022)
+            .setRequired(false)
+    ).addIntegerOption(option =>
+        option.setName('max')
+            .setDescription('The maximum year for the event (use negative for BC/BCE)')
+			.setMinValue(-500)
+			.setMaxValue(2022)
+            .setRequired(false)
+    ),
     new SlashCommandBuilder().setName('events').setDescription('Finds events for a specific date').addIntegerOption(option => 
         option.setName('month')
             .setDescription('The month of the event')

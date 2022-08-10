@@ -7,7 +7,22 @@ import Event from '../Types/Event';
 
 export const name = 'event';
 export async function execute(interaction: CommandInteraction) {
-    const today = await getEvents(new Date().getMonth(), new Date().getDate(), () => sendError(interaction, 'An error occured while finding an event. Please try again.'));
+    const minYear = interaction.options.getInteger('min');
+    const maxYear = interaction.options.getInteger('max');
+
+    const today = await getEvents(
+        new Date().getMonth(),
+        new Date().getDate(),
+        () => sendError(interaction, 'An error occured while finding an event. Please try again.'),
+        minYear,
+        maxYear,
+    );
+
+    if (today.events.length === 0) {
+        sendError(interaction, 'We couldn\'t find any events for today. Try removing some search filters.');
+        return;
+    }
+
     const event = today.getRandom();
 
     const findNewButton = new MessageButton()
