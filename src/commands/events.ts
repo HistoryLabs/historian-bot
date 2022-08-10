@@ -79,13 +79,13 @@ export async function execute(interaction: CommandInteraction) {
                     interaction.editReply({ embeds: [eventsEmbed], components: [new MessageActionRow({ components: [backButton, forwardButton]} )] });
                 });
 
-                setTimeout(() => {
+                collector.on('end', () => {
                     for (let i = 0; i < eventsButtons.components.length; i++) {
                         eventsButtons.components[i].setDisabled(true);
                     }
 
                     interaction.editReply({ components: [eventsButtons] });
-                }, 300000);
+                });
             });
         });
     } else {
