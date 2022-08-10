@@ -1,6 +1,5 @@
 import * as fs from 'fs';
 import { Client, Collection, MessageEmbed, Intents } from 'discord.js';
-import { SlashCommandBuilder } from '@discordjs/builders';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { AutoPoster } from 'topgg-autoposter';
@@ -11,6 +10,7 @@ import chalk from 'chalk';
 import CollectionsObject from './Types/CollectionsObject';
 import GuildData from './Types/GuildData';
 import Database from './utils/Database';
+import commands from './commands';
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 const collections: CollectionsObject = {
@@ -54,49 +54,6 @@ for (const eventfile of eventFiles) {
     const event = require(`./events/${eventfile}`);
     collections.events.set(event.name, event);
 }
-
-// Slash Commands
-const commands = [
-    new SlashCommandBuilder().setName('help').setDescription('Get a list of commands'),
-    new SlashCommandBuilder().setName('info').setDescription('Learn more about the bot'),
-    new SlashCommandBuilder().setName('setchannel').setDescription('Sets events to be sent to this channel').addStringOption(option => 
-        option.setName('interval')
-            .setDescription('The interval at which events are sent')
-            .setRequired(true)
-            .addChoice('Daily', 'daily')
-            .addChoice('Weekly', 'weekly')
-    ).addStringOption(option => 
-        option.setName('time')
-            .setDescription('The time you want events sent (in CST - default is 12 PM)')
-            .addChoice('12 AM', '0').addChoice('1 AM', '1').addChoice('2 AM', '2')
-            .addChoice('3 AM', '3').addChoice('4 AM', '4').addChoice('5 AM', '5')
-            .addChoice('6 AM', '6').addChoice('7 AM', '7').addChoice('8 AM', '8')
-            .addChoice('9 AM', '9').addChoice('10 AM', '10').addChoice('11 AM', '11')
-            .addChoice('12 PM', '12').addChoice('1 PM', '13').addChoice('2 PM', '14')
-            .addChoice('3 PM', '15').addChoice('4 PM', '16').addChoice('5 PM', '17')
-            .addChoice('6 PM', '18').addChoice('7 PM', '19').addChoice('8 PM', '20')
-            .addChoice('9 PM', '21').addChoice('10 PM', '22').addChoice('11 PM', '23'),
-    ).addRoleOption(option => 
-        option.setName('role').setDescription('A role to ping when events are sent')
-    ),
-    new SlashCommandBuilder().setName('removechannel').setDescription('Stops events from being sent to this channel').addStringOption(option => 
-        option.setName('interval')
-            .setDescription('The interval at which events are sent')
-            .setRequired(true)
-            .addChoice('Daily', 'daily')
-            .addChoice('Weekly', 'weekly')
-    ),
-    new SlashCommandBuilder().setName('event').setDescription('Gives a historical event for the day'),
-    new SlashCommandBuilder().setName('events').setDescription('Finds events for a specific date').addIntegerOption(option => 
-        option.setName('month')
-            .setDescription('The month of the date (1-12)')
-            .setRequired(true)
-    ).addIntegerOption(option => 
-        option.setName('day')
-            .setDescription('The day of the event (1-31)')
-            .setRequired(true)
-    ),
-];
 
 const rest = new REST({ version: '9' }).setToken(process.env.NODE_ENV === 'DEV' ? process.env.DEV_TOKEN : process.env.PROD_TOKEN);
 
