@@ -1,11 +1,9 @@
 import * as fs from 'fs';
-import { Client, Collection, MessageEmbed, Intents } from 'discord.js';
+import { Client, Collection, Intents } from 'discord.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { AutoPoster } from 'topgg-autoposter';
-import config from './config.json';
 import apiTest from './tests/api.test';
-import wiki from 'wikijs';
 import chalk from 'chalk';
 import CollectionsObject from './Types/CollectionsObject';
 import GuildData from './Types/GuildData';
@@ -78,9 +76,9 @@ client.on('interactionCreate', async interaction => {
     } else if (interaction.commandName === 'removechannel') {
         collections.commands.get('removeChannel').execute(interaction, database);
     } else if (interaction.commandName === 'event') {
-        collections.commands.get('event').execute(interaction, config, MessageEmbed, wiki);
+        collections.commands.get('event').execute(interaction);
     } else if (interaction.commandName === 'events') {
-        collections.commands.get('events').execute(interaction, config, MessageEmbed, wiki);
+        collections.commands.get('events').execute(interaction);
     }
 });
 
