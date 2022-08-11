@@ -13,7 +13,7 @@ export async function execute(client: Client, database: Database) {
         database.updateGuild(id, guildData);
     }
 
-    cron.schedule('15 * * * *', async (date) => {
+    cron.schedule('0 * * * *', async (date) => {
         const today = await getEvents(new Date().getMonth(), new Date().getDate());
 
         if (today === null) return;
@@ -43,7 +43,7 @@ export async function execute(client: Client, database: Database) {
         });
     }, { timezone: 'America/Chicago' });
 
-    cron.schedule('52 * * * *', async (date) => {
+    cron.schedule('0 * * * MON', async (date) => {
         const weeklyEvents = await getWeeklyEvents();
         const eventsEmbed = new MessageEmbed()
             .setTitle(`Events this week (${weeklyEvents.events[0].month} ${weeklyEvents.events[0].day} - ${weeklyEvents.events[6].month} ${weeklyEvents.events[6].day})`)
