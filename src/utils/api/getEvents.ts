@@ -1,44 +1,41 @@
-import wiki from 'wikijs';
-import dates from '../../dates.json';
 import Event from '../../Types/Event';
 import EventsObject from '../../Types/EventsObject';
-import PageSection from '../../Types/PageSection';
-import { MonthString, MonthDayString, WeekDayString } from '../../Types/Dates';
+import EventsApi from '../EventsApi';
+import { getDayString, getMonthString, getWeekdayString } from '../dates';
 
-export default function getEvents(month: number, date: number, onError: () => any): Promise<EventsObject> {
-    return new Promise(resolve => {
-        const sourceURL = `https://en.wikipedia.org/wiki/${dates.monthsArray[month]}_${date}`;
-        wiki().page(`${dates.monthsArray[month]}_${date}`).then(page => page.content()).then(result => {
-            if (result) {
-                const page = result as unknown as PageSection; // Temp measure until my PR gets approved in wikijs
-                const eventsString = page[0].items ? `${page[0].items[0].content}\n${page[0].items[1].content}` : page[0].content;
-                const eventsArray: string[] = eventsString.split('\n');
-                const events: Event[] = eventsArray.filter(e => e.split(' – ').length === 2).map(event => {
-                    let splitEvent: string[] = event.split(' – ');
-                    const currentEventDate = new Date(`${month + 1}/${date}/${new Date().getFullYear()}`);
-                    const eventDate = new Date(`${month + 1}/${date}/${splitEvent[0]}`);
-                    return ({
-                        month: dates.monthsArray[month] as MonthString,
-                        day: dates.daysArray[date - 1] as MonthDayString,
-                        currentWeekDay: dates.weekDaysArray[currentEventDate.getDay()] as WeekDayString,
-                        eventWeekDay: dates.weekDaysArray[eventDate.getDay()] as WeekDayString,
-                        year: parseInt(splitEvent[0]),
-                        content: splitEvent[1],
-                        sourceURL,
-                    });
-                });
+export default function getEvents(month: number, date: number, onError?: () => any, minYear?: number, maxYear?: number): Promise<EventsObject> {
+    return new Promise<EventsObject>(async resolve => {
+        const dateData = await EventsApi.getDate(month, date, {
+            min: minYear,
+            max: maxYear,
+        });
 
-                resolve({
-                    events,
-                    sourceURL,
-                    month: dates.monthsArray[month] as MonthString,
-                    day: dates.daysArray[date - 1] as MonthDayString,
-                });
-            } else {
-                if (onError) onError();
-            }
-        }).catch(() => {
+        if (dateData === null) {
             if (onError) onError();
+            return null;
+        }
+
+        const events = dateData.events.map<Event>((event) => {
+            const eventDate = new Date(`${month + 1}/${date}/${event.year}`);
+
+            return {
+                ...event,
+                sourceUrl: dateData.sourceUrl,
+                weekday: getWeekdayString(eventDate.getDay()),
+            }
+        });
+
+        const getRandom = () => {
+            return events[Math.floor(Math.random() * events.length)];
+        }
+
+        resolve({
+            events,
+            sourceURL: dateData.sourceUrl,
+            month: getMonthString(month),
+            day: getDayString(date),
+            totalResults: dateData.totalResults,
+            getRandom,
         });
     });
 }

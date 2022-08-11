@@ -1,27 +1,35 @@
-import WeeklyEvents from '../../Types/WeeklyEvents';
+import WeeklyEvents, { WeeklyEvent } from '../../Types/WeeklyEvents';
+import { getWeekdayString } from '../dates';
 import getEvents from './getEvents';
-import Event from '../../Types/Event';
 
 export default function getWeeklyEvents(onError?: () => any): Promise<WeeklyEvents> {
     return new Promise(resolve => {
-        const weeklyEvents: Event[] = [];
+        const weeklyEvents: WeeklyEvent[] = [];
         const totalEvents: number[] = [];
         const date = new Date();
-        setInterval(async () => {
-            const { events } = await getEvents(date.getMonth(), date.getDate(), () => {
+        const interval = setInterval(async () => {
+            const events = await getEvents(date.getMonth(), date.getDate(), () => {
                 if (onError) onError();
-                clearInterval();
+                clearInterval(interval);
             });
             
-            weeklyEvents.push(events[Math.floor(Math.random() * events.length)]);
-            totalEvents.push(events.length);
+            const selectedEvent = events.getRandom();
+
+            weeklyEvents.push({
+                ...selectedEvent,
+                month: events.month,
+                day: events.day,
+                currentWeekDay: getWeekdayString(weeklyEvents.length),
+            });
+
+            totalEvents.push(events.totalResults);
             date.setDate(date.getDate() + 1);
             
             if (weeklyEvents.length === 7) {
-                clearInterval();
+                clearInterval(interval);
                 resolve({
                     events: weeklyEvents,
-                    avgEvents: Math.floor(totalEvents.reduce((a, b) => a + b) / events.length),
+                    avgEvents: Math.floor(totalEvents.reduce((a, b) => a + b) / events.totalResults),
                 });
             }
         }, 5000);
