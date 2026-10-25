@@ -1,0 +1,5 @@
+# Copy to .dev.vars and fill in from the Discord Developer Portal (use the dev application).
+# .dev.vars is gitignored.
+DISCORD_APPLICATION_ID=
+DISCORD_PUBLIC_KEY=
+DISCORD_TOKEN=

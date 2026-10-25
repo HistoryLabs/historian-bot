@@ -7,6 +7,19 @@ For support you can contact me on the [Historian Bot Support Server](https://dis
 ## Roadmap
 You can find a roadmap of future features and improvements [here](https://github.com/orgs/HistoryLabs/projects/1).
 
+## Development
+Historian runs on Cloudflare Workers: Discord sends slash commands to the Worker over HTTP, data lives in D1, and events come from Wikipedia's [On this day](https://api.wikimedia.org/wiki/Feed_API/Reference/On_this_day) feed.
+
+```bash
+npm install
+cp .dev.vars.example .dev.vars   # fill in your dev application's credentials
+npm run db:migrate:local
+npm test
+npm run dev
+```
+
+Register slash commands with `npm run register-commands -- --guild <server id>` (one server, instant) or `npm run register-commands` (global).
+
 ## Contributions
 Contributions are always welcome. To get started, read the [Contributing Steps](https://github.com/HistoryLabs/historian-bot/blob/main/CONTRIBUTING.md).
 

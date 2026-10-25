@@ -1,24 +1,16 @@
 {
   "name": "historian-bot",
-  "version": "4.3.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "@discordjs/builders": "^1.1.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "axios": "^0.27.2",
-    "chalk": "^4.1.2",
-    "discord-api-types": "^0.23.1",
-    "discord.js": "^13.6.0",
-    "mongodb": "^4.5.0",
-    "node-cron": "^3.0.0",
-    "topgg-autoposter": "^2.0.1"
-  },
+  "version": "5.0.0",
+  "private": true,
+  "description": "Historian Discord bot, running on Cloudflare Workers",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "node -r dotenv/config ./dist/index.js",
-    "dev": "nodemon -r dotenv/config --config nodemon.json --exec node --loader ts-node/esm/transpile-only src/index.ts"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "db:migrate:local": "wrangler d1 migrations apply historian --local",
+    "register-commands": "node --env-file=.dev.vars --experimental-strip-types scripts/register-commands.ts"
   },
   "repository": {
     "type": "git",
@@ -31,10 +23,21 @@
   },
   "homepage": "https://github.com/HistoryLabs/historian-bot#readme",
   "devDependencies": {
-    "@types/node-cron": "^3.0.1",
-    "dotenv": "^11.0.0",
-    "nodemon": "^2.0.15",
-    "ts-node": "^10.4.0",
-    "typescript": "^4.5.4"
+    "@cloudflare/vitest-plugin": "^1.4.7",
+    "@cloudflare/workers-types": "^5.20261024.1",
+    "discord-api-types": "^0.38.57",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.12",
+    "wrangler": "^4.152.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20260815.1": true,
+    "workerd@1.20261019.1": true
+  },
+  "dependencies": {
+    "@date-fns/tz": "^1.5.0",
+    "date-fns": "^4.4.0"
   }
 }

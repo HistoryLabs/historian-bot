@@ -1,0 +1,21 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "historian-bot",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-10-01",
+    "observability": { "enabled": true },
+    "vars": {
+        "DISCORD_APPLICATION_ID": "743224756408549457"
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "historian",
+            // Placeholder until the real database is created with `wrangler d1 create historian`
+            "database_id": "00000000-0000-0000-0000-000000000000",
+            "migrations_dir": "migrations"
+        }
+    ]
+    // Secrets (set with `wrangler secret put`, or in .dev.vars locally):
+    //   DISCORD_PUBLIC_KEY, DISCORD_TOKEN
+}
