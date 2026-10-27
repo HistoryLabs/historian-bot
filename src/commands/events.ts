@@ -8,10 +8,11 @@ import {
 import { format, getDaysInMonth, isValid, parse } from 'date-fns';
 import { DEFAULT_TIMEZONE, EMOJIS, EVENTS_PER_PAGE, FOOTER, LEAP_YEAR } from '../config';
 import { getGuildTimezone } from '../db';
-import { type Context, type MessageBody, UserError, deferred, embed, errorReply, userId } from '../discord';
+import { type Context, type MessageBody, UserError, deferred, embed, errorReply, truncate, userId } from '../discord';
 import { getInteger, parseOptions } from '../options';
 import { zonedDate } from '../timezones';
-import { dateArticleUrl, filterByYear, formatYear, getEvents, historicalWeekday, pickRandom } from '../wiki';
+import { eventEmbed } from '../posts';
+import { dateArticleUrl, filterByYear, formatYear, getEvents, pickRandom } from '../wiki';
 
 // /event [min] [max]
 
@@ -56,16 +57,8 @@ async function randomEventMessage(ctx: Context, date: Date, min: number | null, 
         throw new UserError('We couldn\'t find any events for today in those years. Try widening `min` and `max`.');
     }
 
-    const event = pickRandom(events);
-    const weekday = historicalWeekday(event.year, month, day);
-
     return {
-        embeds: [embed({
-            title: `${weekday ? `${weekday}, ` : ''}${format(date, 'MMMM do')}, ${formatYear(event.year)}`,
-            url: event.url,
-            description: event.text,
-            footer: { ...FOOTER, text: `${FOOTER.text} • Randomly selected from ${events.length} events` },
-        })],
+        embeds: [eventEmbed(date, pickRandom(events), `${FOOTER.text} • Randomly selected from ${events.length} events`)],
         components: [{
             type: ComponentType.ActionRow,
             components: [{
@@ -142,8 +135,4 @@ async function eventsPageMessage(ctx: Context, date: Date, page: number): Promis
             ],
         }],
     };
-}
-
-function truncate(text: string, max: number): string {
-    return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }

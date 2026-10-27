@@ -39,7 +39,7 @@ export function historicalWeekday(year: number, month: number, day: number): str
  * Served from D1 and refreshed from Wikimedia once the cached copy is a week old.
  */
 export async function getEvents(db: D1Database, month: number, day: number, now = Date.now()): Promise<HistoricalEvent[]> {
-    const key = format(new Date(LEAP_YEAR, month - 1, day), 'MM-dd');
+    const key = cacheKey(month, day);
     const nowSeconds = Math.floor(now / 1000);
     const cached = await db
         .prepare('SELECT events, fetched_at FROM wiki_days WHERE date = ?')
@@ -65,6 +65,32 @@ export async function getEvents(db: D1Database, month: number, day: number, now 
         .run();
 
     return events;
+}
+
+/**
+ * Makes sure the cache has a fresh copy of each date, so the queue consumer
+ * rarely has to wait on Wikimedia. Uses one query to find what's missing.
+ */
+export async function warmEvents(db: D1Database, dates: { month: number, day: number }[], now = Date.now()): Promise<void> {
+    const byKey = new Map(dates.map(d => [cacheKey(d.month, d.day), d]));
+    const { results } = await db
+        .prepare('SELECT date FROM wiki_days WHERE date IN (SELECT value FROM json_each(?)) AND fetched_at > ?')
+        .bind(JSON.stringify([...byKey.keys()]), Math.floor(now / 1000) - WIKI_CACHE_SECONDS)
+        .all<{ date: string }>();
+    for (const { date } of results) byKey.delete(date);
+
+    for (const { month, day } of byKey.values()) {
+        try {
+            await getEvents(db, month, day, now);
+        } catch (err) {
+            // The consumer will try again when it needs this date
+            console.error(`Failed to warm ${month}/${day}`, err);
+        }
+    }
+}
+
+function cacheKey(month: number, day: number): string {
+    return format(new Date(LEAP_YEAR, month - 1, day), 'MM-dd');
 }
 
 async function fetchEvents(month: number, day: number): Promise<HistoricalEvent[]> {

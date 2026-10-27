@@ -15,7 +15,22 @@
             "database_id": "00000000-0000-0000-0000-000000000000",
             "migrations_dir": "migrations"
         }
-    ]
+    ],
+    // Every 15 minutes (UTC). Each run queues the posts whose next_send_at has passed.
+    "triggers": { "crons": ["*/15 * * * *"] },
+    "queues": {
+        "producers": [{ "binding": "POSTS", "queue": "historian-posts" }],
+        "consumers": [
+            {
+                "queue": "historian-posts",
+                "max_batch_size": 10,
+                "max_batch_timeout": 5,
+                "max_retries": 3,
+                // Keeps the bot well under Discord's 50 requests/second limit
+                "max_concurrency": 2
+            }
+        ]
+    }
     // Secrets (set with `wrangler secret put`, or in .dev.vars locally):
     //   DISCORD_PUBLIC_KEY, DISCORD_TOKEN
 }

@@ -25,6 +25,10 @@ export function embed(data: APIEmbed): APIEmbed {
     return { color: COLORS.default, footer: FOOTER, ...data };
 }
 
+export function truncate(text: string, max: number): string {
+    return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+}
+
 export function errorEmbed(message: string): APIEmbed {
     return { color: COLORS.error, description: message };
 }

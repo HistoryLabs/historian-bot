@@ -1,6 +1,8 @@
 import type { APIInteraction } from 'discord-api-types/v10';
 import type { Env } from './env';
 import { handleInteraction } from './interactions';
+import { type PostMessage, sendPosts } from './posts';
+import { enqueueDuePosts } from './scheduler';
 import { verifyRequest } from './verify';
 
 export default {
@@ -26,4 +28,13 @@ export default {
 
         return new Response('Not found', { status: 404 });
     },
-} satisfies ExportedHandler<Env>;
+
+    async scheduled(controller, env): Promise<void> {
+        const queued = await enqueueDuePosts(env, controller.scheduledTime);
+        if (queued > 0) console.log(`Queued ${queued} scheduled posts`);
+    },
+
+    async queue(batch, env): Promise<void> {
+        await sendPosts(batch, env);
+    },
+} satisfies ExportedHandler<Env, PostMessage>;
