@@ -14,7 +14,9 @@ export const APP_ID = env.DISCORD_APPLICATION_ID;
 export const USER_ID = '111111111111111111';
 export const CHANNEL_ID = '222222222222222222';
 
-const ALL_POST_PERMISSIONS = String(PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks);
+const ALL_POST_PERMISSIONS = String(
+    PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks,
+);
 
 let signingKey: Promise<CryptoKey> | null = null;
 
@@ -22,9 +24,11 @@ export async function signedRequest(body: unknown, options: { badSignature?: boo
     signingKey ??= crypto.subtle.importKey('jwk', env.TEST_PRIVATE_KEY, { name: 'Ed25519' }, false, ['sign']);
     const text = JSON.stringify(body);
     const timestamp = String(Math.floor(Date.now() / 1000));
-    const signed = new Uint8Array(await crypto.subtle.sign('Ed25519', await signingKey, new TextEncoder().encode(timestamp + text)));
+    const signed = new Uint8Array(
+        await crypto.subtle.sign('Ed25519', await signingKey, new TextEncoder().encode(timestamp + text)),
+    );
     if (options.badSignature) signed[0] ^= 0xff;
-    const signature = [...signed].map(b => b.toString(16).padStart(2, '0')).join('');
+    const signature = [...signed].map((b) => b.toString(16).padStart(2, '0')).join('');
 
     return new Request('https://bot.test/interactions', {
         method: 'POST',
@@ -36,7 +40,7 @@ export async function signedRequest(body: unknown, options: { badSignature?: boo
 /** Sends an interaction to the Worker and waits for any deferred work to finish. */
 export async function send(interaction: unknown, options: { badSignature?: boolean } = {}) {
     const ctx = createExecutionContext();
-    const request = await signedRequest(interaction, options) as Request<unknown, IncomingRequestCfProperties>;
+    const request = (await signedRequest(interaction, options)) as Request<unknown, IncomingRequestCfProperties>;
     const response = await worker.fetch(request, env, ctx);
     await waitOnExecutionContext(ctx);
     const body = response.status === 200 ? await response.json<any>() : null;
@@ -105,7 +109,7 @@ export function option(type: ApplicationCommandOptionType, name: string, value: 
 /** A Wikimedia "On this day" response with the given years. */
 export function wikimediaResponse(years: number[]) {
     return {
-        events: years.map(year => ({
+        events: years.map((year) => ({
             year,
             text: `Something happened in ${year}.`,
             pages: [{ content_urls: { desktop: { page: `https://en.wikipedia.org/wiki/Event_${year}` } } }],
@@ -124,21 +128,32 @@ export interface RecordedCall {
  * Replaces global fetch. Wikimedia requests get `wikimediaYears` events,
  * Discord requests get `discordStatus`. Returns the recorded calls.
  */
-export function mockFetch(options: { wikimediaYears?: number[], wikimediaStatus?: number, discordStatus?: (url: string) => number } = {}) {
+export function mockFetch(
+    options: { wikimediaYears?: number[]; wikimediaStatus?: number; discordStatus?: (url: string) => number } = {},
+) {
     const calls: RecordedCall[] = [];
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
         const request = new Request(input, init);
         const text = await request.text();
-        calls.push({ url: request.url, method: request.method, headers: request.headers, body: text ? JSON.parse(text) : null });
+        calls.push({
+            url: request.url,
+            method: request.method,
+            headers: request.headers,
+            body: text ? JSON.parse(text) : null,
+        });
 
         if (request.url.startsWith('https://api.wikimedia.org/')) {
             const status = options.wikimediaStatus ?? 200;
             if (status !== 200) return new Response('error', { status });
-            return Response.json(wikimediaResponse(options.wikimediaYears ?? [1945, 1260, 2001, 1648, 1901, 1931, 1998]));
+            return Response.json(
+                wikimediaResponse(options.wikimediaYears ?? [1945, 1260, 2001, 1648, 1901, 1931, 1998]),
+            );
         }
         if (request.url.startsWith('https://discord.com/')) {
             const status = options.discordStatus?.(request.url) ?? 200;
-            return status === 200 ? Response.json({ id: '9' }) : new Response(JSON.stringify({ message: 'Missing Access' }), { status });
+            return status === 200
+                ? Response.json({ id: '9' })
+                : new Response(JSON.stringify({ message: 'Missing Access' }), { status });
         }
         throw new Error(`Unexpected fetch: ${request.url}`);
     });

@@ -30,24 +30,27 @@ async function schedule(fields: Partial<Subscription> = {}) {
 
 /** Runs the queue consumer on the given posts and returns what it acked and retried. */
 async function consume(...posts: PostMessage[]) {
-    const batch = createMessageBatch<PostMessage>('historian-posts', posts.map((body, i) => ({
-        id: String(i),
-        timestamp: Date.now(),
-        attempts: 1,
-        body,
-    })));
+    const batch = createMessageBatch<PostMessage>(
+        'historian-posts',
+        posts.map((body, i) => ({
+            id: String(i),
+            timestamp: Date.now(),
+            attempts: 1,
+            body,
+        })),
+    );
     // getQueueResult doesn't report retry delays, so record them directly
     const retryDelays: Record<string, number | undefined> = {};
     for (const message of batch.messages) {
         const retry = message.retry.bind(message);
-        message.retry = options => {
+        message.retry = (options) => {
             retryDelays[message.id] = options?.delaySeconds;
             retry(options);
         };
     }
     const ctx = createExecutionContext();
     await worker.queue(batch, env);
-    return { ...await getQueueResult(batch, ctx), retryDelays };
+    return { ...(await getQueueResult(batch, ctx)), retryDelays };
 }
 
 const daily: PostMessage = { guildId: GUILD, kind: 'daily', channelId: CHANNEL, date: '2026-10-24' };
@@ -61,7 +64,7 @@ describe('sending posts', () => {
         const result = await consume(daily);
         expect(result.explicitAcks).toEqual(['0']);
 
-        const send = calls.find(c => c.url === SEND_URL)!;
+        const send = calls.find((c) => c.url === SEND_URL)!;
         expect(send.headers.get('Authorization')).toBe('Bot test-token');
         expect(send.body.content).toBe('<@&999>');
         expect(send.body.allowed_mentions).toEqual({ roles: ['999'] });
@@ -76,7 +79,7 @@ describe('sending posts', () => {
 
         await consume(weekly);
 
-        const send = calls.find(c => c.url === SEND_URL)!;
+        const send = calls.find((c) => c.url === SEND_URL)!;
         expect(send.body.content).toBe('@everyone');
         expect(send.body.allowed_mentions).toEqual({ parse: ['everyone'] });
         const embed = send.body.embeds[0];
@@ -85,14 +88,14 @@ describe('sending posts', () => {
         expect(embed.description).toMatch(/^\*\*\[Monday, October 26th \((1900|1950)\)\]/);
         expect(embed.footer.text).toBe('Weekly Events • Randomly selected from an average of 2 events per day');
         // Each date is fetched once
-        expect(calls.filter(c => c.url.startsWith('https://api.wikimedia.org/'))).toHaveLength(7);
+        expect(calls.filter((c) => c.url.startsWith('https://api.wikimedia.org/'))).toHaveLength(7);
     });
 
     it('does not ping anyone without a role', async () => {
         const calls = mockFetch();
         await schedule();
         await consume(daily);
-        const send = calls.find(c => c.url === SEND_URL)!;
+        const send = calls.find((c) => c.url === SEND_URL)!;
         expect(send.body.content).toBeUndefined();
         expect(send.body.allowed_mentions).toEqual({ parse: [] });
     });
@@ -102,16 +105,19 @@ describe('sending posts', () => {
         await schedule({ channel_id: 'somewhere-else' });
 
         const result = await consume(daily, weekly);
-        expect(result.explicitAcks.sort()).toEqual(['0', '1']);
+        expect(result.explicitAcks.toSorted()).toEqual(['0', '1']);
         expect(calls).toHaveLength(0);
     });
 
     it('retries after the time Discord asks for when rate limited', async () => {
         mockFetch();
-        vi.spyOn(globalThis, 'fetch').mockImplementation(async input => {
+        vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
             const url = new Request(input).url;
-            if (url.startsWith('https://api.wikimedia.org/')) return Response.json({ events: [{ year: 1945, text: 'x', pages: [] }] });
-            return new Response(JSON.stringify({ message: 'You are being rate limited.', retry_after: 2.5 }), { status: 429 });
+            if (url.startsWith('https://api.wikimedia.org/'))
+                return Response.json({ events: [{ year: 1945, text: 'x', pages: [] }] });
+            return new Response(JSON.stringify({ message: 'You are being rate limited.', retry_after: 2.5 }), {
+                status: 429,
+            });
         });
         await schedule();
 
@@ -138,6 +144,8 @@ describe('sending posts', () => {
         const result = await consume(daily);
         expect(result.retryMessages).toEqual([{ msgId: '0' }]);
         expect(result.retryDelays).toEqual({ '0': 60 });
-        expect(await env.DB.prepare('SELECT * FROM subscriptions WHERE guild_id = ?').bind(GUILD).first()).not.toBeNull();
+        expect(
+            await env.DB.prepare('SELECT * FROM subscriptions WHERE guild_id = ?').bind(GUILD).first(),
+        ).not.toBeNull();
     });
 });

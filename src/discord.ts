@@ -49,7 +49,13 @@ export function userId(interaction: APIInteraction): string | undefined {
 }
 
 /** Calls the Discord API as the bot. Throws a DiscordError for non-2xx responses. */
-export async function discordRequest(env: Env, method: string, path: string, body?: unknown, auth = true): Promise<Response> {
+export async function discordRequest(
+    env: Env,
+    method: string,
+    path: string,
+    body?: unknown,
+    auth = true,
+): Promise<Response> {
     const response = await fetch(`${API_BASE}${path}`, {
         method,
         headers: {
@@ -66,7 +72,10 @@ export async function discordRequest(env: Env, method: string, path: string, bod
 export class UserError extends Error {}
 
 export class DiscordError extends Error {
-    constructor(public status: number, public body: string) {
+    constructor(
+        public status: number,
+        public body: string,
+    ) {
         super(`Discord API returned ${status}: ${body}`);
     }
 }
@@ -78,28 +87,42 @@ export class DiscordError extends Error {
  *
  * `update` acknowledges a button click by editing the message it's on.
  */
-export function deferred(ctx: Context, work: () => Promise<MessageBody>, options: { update?: boolean, ephemeral?: boolean } = {}): APIInteractionResponse {
+export function deferred(
+    ctx: Context,
+    work: () => Promise<MessageBody>,
+    options: { update?: boolean; ephemeral?: boolean } = {},
+): APIInteractionResponse {
     const { interaction, env } = ctx;
     const webhook = `/webhooks/${env.DISCORD_APPLICATION_ID}/${interaction.token}`;
 
-    ctx.waitUntil((async () => {
-        let body: MessageBody;
-        try {
-            body = await work();
-        } catch (err) {
-            if (!(err instanceof UserError)) console.error(err);
-            const message = errorEmbed(err instanceof UserError
-                ? err.message
-                : 'Something went wrong while finding events. Please try again in a moment.');
-            if (options.update) {
-                // Keep the existing message and tell only the user who clicked
-                await discordRequest(env, 'POST', webhook, { embeds: [message], flags: MessageFlags.Ephemeral }, false);
-                return;
+    ctx.waitUntil(
+        (async () => {
+            let body: MessageBody;
+            try {
+                body = await work();
+            } catch (err) {
+                if (!(err instanceof UserError)) console.error(err);
+                const message = errorEmbed(
+                    err instanceof UserError
+                        ? err.message
+                        : 'Something went wrong while finding events. Please try again in a moment.',
+                );
+                if (options.update) {
+                    // Keep the existing message and tell only the user who clicked
+                    await discordRequest(
+                        env,
+                        'POST',
+                        webhook,
+                        { embeds: [message], flags: MessageFlags.Ephemeral },
+                        false,
+                    );
+                    return;
+                }
+                body = { embeds: [message], components: [] };
             }
-            body = { embeds: [message], components: [] };
-        }
-        await discordRequest(env, 'PATCH', `${webhook}/messages/@original`, body, false);
-    })().catch(err => console.error('Failed to send deferred response', err)));
+            await discordRequest(env, 'PATCH', `${webhook}/messages/@original`, body, false);
+        })().catch((err) => console.error('Failed to send deferred response', err)),
+    );
 
     if (options.update) return { type: InteractionResponseType.DeferredMessageUpdate };
     return {

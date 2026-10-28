@@ -11,7 +11,7 @@ export function parseOptions(options: APIApplicationCommandInteractionDataOption
     const parsed: ParsedOptions = { subcommand: null, values: {}, focused: null };
     let list = options;
 
-    const sub = options.find(o => o.type === ApplicationCommandOptionType.Subcommand);
+    const sub = options.find((o) => o.type === ApplicationCommandOptionType.Subcommand);
     if (sub && sub.type === ApplicationCommandOptionType.Subcommand) {
         parsed.subcommand = sub.name;
         list = sub.options ?? [];

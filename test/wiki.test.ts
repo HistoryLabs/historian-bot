@@ -13,8 +13,12 @@ describe('getEvents', () => {
         const now = Date.parse('2026-10-24T12:00:00Z');
 
         const events = await getEvents(env.DB, 3, 15, now);
-        expect(events.map(e => e.year)).toEqual([-44, 1945, 2001]);
-        expect(events[0]).toEqual({ year: -44, text: 'Something happened in -44.', url: 'https://en.wikipedia.org/wiki/Event_-44' });
+        expect(events.map((e) => e.year)).toEqual([-44, 1945, 2001]);
+        expect(events[0]).toEqual({
+            year: -44,
+            text: 'Something happened in -44.',
+            url: 'https://en.wikipedia.org/wiki/Event_-44',
+        });
         expect(calls).toHaveLength(1);
         expect(calls[0].url).toBe('https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/03/15');
         expect(calls[0].headers.get('User-Agent')).toContain('HistorianBot');
@@ -39,7 +43,7 @@ describe('getEvents', () => {
 
         vi.restoreAllMocks();
         mockFetch({ wikimediaStatus: 503 });
-        expect((await getEvents(env.DB, 5, 1, now + 8 * DAY)).map(e => e.year)).toEqual([1800]);
+        expect((await getEvents(env.DB, 5, 1, now + 8 * DAY)).map((e) => e.year)).toEqual([1800]);
     });
 
     it('throws if Wikimedia is down and nothing is cached', async () => {
@@ -49,11 +53,11 @@ describe('getEvents', () => {
 });
 
 describe('filterByYear', () => {
-    const events = [-44, 1000, 1945].map(year => ({ year, text: '', url: '' }));
+    const events = [-44, 1000, 1945].map((year) => ({ year, text: '', url: '' }));
 
     it('filters inclusively and treats null as unbounded', () => {
-        expect(filterByYear(events, 1000, null).map(e => e.year)).toEqual([1000, 1945]);
-        expect(filterByYear(events, null, 1000).map(e => e.year)).toEqual([-44, 1000]);
+        expect(filterByYear(events, 1000, null).map((e) => e.year)).toEqual([1000, 1945]);
+        expect(filterByYear(events, null, 1000).map((e) => e.year)).toEqual([-44, 1000]);
         expect(filterByYear(events, null, null)).toHaveLength(3);
     });
 });

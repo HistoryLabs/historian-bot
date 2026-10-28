@@ -22,7 +22,7 @@ const path = guildId
 
 const response = await fetch(`https://discord.com/api/v10${path}`, {
     method: 'PUT',
-    headers: { 'Authorization': `Bot ${token}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bot ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(commands),
 });
 
@@ -31,5 +31,7 @@ if (!response.ok) {
     process.exit(1);
 }
 
-const registered = await response.json() as { name: string }[];
-console.log(`Registered ${registered.length} commands ${guildId ? `in guild ${guildId}` : 'globally'}: ${registered.map(c => `/${c.name}`).join(', ')}`);
+const registered = (await response.json()) as { name: string }[];
+console.log(
+    `Registered ${registered.length} commands ${guildId ? `in guild ${guildId}` : 'globally'}: ${registered.map((c) => `/${c.name}`).join(', ')}`,
+);

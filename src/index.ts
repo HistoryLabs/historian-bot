@@ -16,7 +16,7 @@ export default {
             const response = await handleInteraction({
                 interaction: JSON.parse(body) as APIInteraction,
                 env,
-                waitUntil: promise => ctx.waitUntil(promise),
+                waitUntil: (promise) => ctx.waitUntil(promise),
                 now: Date.now(),
             });
             return Response.json(response);

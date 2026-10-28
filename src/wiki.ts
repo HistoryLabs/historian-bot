@@ -38,13 +38,18 @@ export function historicalWeekday(year: number, month: number, day: number): str
  * Events from the "Events" section of Wikipedia's article for a date, oldest first.
  * Served from D1 and refreshed from Wikimedia once the cached copy is a week old.
  */
-export async function getEvents(db: D1Database, month: number, day: number, now = Date.now()): Promise<HistoricalEvent[]> {
+export async function getEvents(
+    db: D1Database,
+    month: number,
+    day: number,
+    now = Date.now(),
+): Promise<HistoricalEvent[]> {
     const key = cacheKey(month, day);
     const nowSeconds = Math.floor(now / 1000);
     const cached = await db
         .prepare('SELECT events, fetched_at FROM wiki_days WHERE date = ?')
         .bind(key)
-        .first<{ events: string, fetched_at: number }>();
+        .first<{ events: string; fetched_at: number }>();
 
     if (cached && nowSeconds - cached.fetched_at < WIKI_CACHE_SECONDS) {
         return JSON.parse(cached.events);
@@ -71,8 +76,12 @@ export async function getEvents(db: D1Database, month: number, day: number, now 
  * Makes sure the cache has a fresh copy of each date, so the queue consumer
  * rarely has to wait on Wikimedia. Uses one query to find what's missing.
  */
-export async function warmEvents(db: D1Database, dates: { month: number, day: number }[], now = Date.now()): Promise<void> {
-    const byKey = new Map(dates.map(d => [cacheKey(d.month, d.day), d]));
+export async function warmEvents(
+    db: D1Database,
+    dates: { month: number; day: number }[],
+    now = Date.now(),
+): Promise<void> {
+    const byKey = new Map(dates.map((d) => [cacheKey(d.month, d.day), d]));
     const { results } = await db
         .prepare('SELECT date FROM wiki_days WHERE date IN (SELECT value FROM json_each(?)) AND fetched_at > ?')
         .bind(JSON.stringify([...byKey.keys()]), Math.floor(now / 1000) - WIKI_CACHE_SECONDS)
@@ -97,7 +106,7 @@ async function fetchEvents(month: number, day: number): Promise<HistoricalEvent[
     const mm = String(month).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
     const response = await fetch(`https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/events/${mm}/${dd}`, {
-        headers: { 'User-Agent': USER_AGENT, 'Accept': 'application/json' },
+        headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' },
     });
     if (!response.ok) throw new Error(`Wikimedia returned ${response.status} for ${mm}/${dd}`);
 
@@ -105,16 +114,16 @@ async function fetchEvents(month: number, day: number): Promise<HistoricalEvent[
     const fallbackUrl = dateArticleUrl(month, day);
 
     return data.events
-        .map(event => ({
+        .map((event) => ({
             year: event.year,
             text: event.text,
             url: event.pages?.[0]?.content_urls?.desktop?.page ?? fallbackUrl,
         }))
-        .sort((a, b) => a.year - b.year);
+        .toSorted((a, b) => a.year - b.year);
 }
 
 export function filterByYear(events: HistoricalEvent[], min: number | null, max: number | null): HistoricalEvent[] {
-    return events.filter(e => (min === null || e.year >= min) && (max === null || e.year <= max));
+    return events.filter((e) => (min === null || e.year >= min) && (max === null || e.year <= max));
 }
 
 export function pickRandom<T>(items: T[]): T {

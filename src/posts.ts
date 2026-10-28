@@ -44,14 +44,19 @@ async function weeklyEmbed(start: Date, load: EventLoader): Promise<APIEmbed> {
         if (events.length === 0) continue;
 
         const event = pickRandom(events);
-        lines.push(`**[${format(date, 'EEEE, MMMM do')} (${formatYear(event.year)})](${event.url})** - ${truncate(event.text, 450)}`);
+        lines.push(
+            `**[${format(date, 'EEEE, MMMM do')} (${formatYear(event.year)})](${event.url})** - ${truncate(event.text, 450)}`,
+        );
     }
     if (lines.length === 0) throw new Error(`No events for the week of ${format(start, 'MM-dd')}`);
 
     return embed({
         title: `Events this week (${format(start, 'MMMM do')} - ${format(addDays(start, 6), 'MMMM do')})`,
         description: lines.join('\n\n'),
-        footer: { ...FOOTER, text: `Weekly Events • Randomly selected from an average of ${Math.round(total / 7)} events per day` },
+        footer: {
+            ...FOOTER,
+            text: `Weekly Events • Randomly selected from an average of ${Math.round(total / 7)} events per day`,
+        },
     });
 }
 
@@ -63,18 +68,17 @@ async function weeklyEmbed(start: Date, load: EventLoader): Promise<APIEmbed> {
  */
 export async function sendPosts(batch: MessageBatch<PostMessage>, env: Env, now = Date.now()): Promise<void> {
     // One query for every schedule in the batch, to stay under D1's per-invocation limit
-    const { results } = await env.DB
-        .prepare(
-            `SELECT s.guild_id, s.kind, s.channel_id, s.role_id FROM subscriptions s
+    const { results } = await env.DB.prepare(
+        `SELECT s.guild_id, s.kind, s.channel_id, s.role_id FROM subscriptions s
              JOIN json_each(?) AS m ON s.guild_id = m.value ->> 'guildId' AND s.kind = m.value ->> 'kind'`,
-        )
-        .bind(JSON.stringify(batch.messages.map(m => m.body)))
-        .all<{ guild_id: string, kind: ScheduleKind, channel_id: string, role_id: string | null }>();
-    const schedules = new Map(results.map(r => [`${r.guild_id}:${r.kind}`, r]));
+    )
+        .bind(JSON.stringify(batch.messages.map((m) => m.body)))
+        .all<{ guild_id: string; kind: ScheduleKind; channel_id: string; role_id: string | null }>();
+    const schedules = new Map(results.map((r) => [`${r.guild_id}:${r.kind}`, r]));
 
     // Posts in a batch often share dates, so load each one once
     const loaded = new Map<string, Promise<HistoricalEvent[]>>();
-    const load: EventLoader = date => {
+    const load: EventLoader = (date) => {
         const key = format(date, 'MM-dd');
         let events = loaded.get(key);
         if (!events) {
@@ -105,8 +109,7 @@ export async function sendPosts(batch: MessageBatch<PostMessage>, env: Env, now 
                 message.retry({ delaySeconds: retryAfter(err) });
             } else if (err instanceof DiscordError && (err.status === 403 || err.status === 404)) {
                 // Channel deleted or the bot lost access
-                await env.DB
-                    .prepare('DELETE FROM subscriptions WHERE guild_id = ? AND kind = ? AND channel_id = ?')
+                await env.DB.prepare('DELETE FROM subscriptions WHERE guild_id = ? AND kind = ? AND channel_id = ?')
                     .bind(post.guildId, post.kind, post.channelId)
                     .run();
                 console.log(`Removed ${post.kind} schedule for guild ${post.guildId}: Discord returned ${err.status}`);
@@ -119,10 +122,11 @@ export async function sendPosts(batch: MessageBatch<PostMessage>, env: Env, now 
     }
 }
 
-function mention(roleId: string | null, guildId: string): { content?: string, allowed_mentions: APIAllowedMentions } {
+function mention(roleId: string | null, guildId: string): { content?: string; allowed_mentions: APIAllowedMentions } {
     if (!roleId) return { allowed_mentions: { parse: [] } };
     // The @everyone role has the same ID as the server
-    if (roleId === guildId) return { content: '@everyone', allowed_mentions: { parse: [AllowedMentionsTypes.Everyone] } };
+    if (roleId === guildId)
+        return { content: '@everyone', allowed_mentions: { parse: [AllowedMentionsTypes.Everyone] } };
     return { content: `<@&${roleId}>`, allowed_mentions: { roles: [roleId] } };
 }
 

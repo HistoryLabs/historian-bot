@@ -23,12 +23,16 @@ const scheduleOptions = (kind: 'daily' | 'weekly'): APIApplicationCommandBasicOp
         description: 'Channel to post in (defaults to this one)',
         channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
     },
-    ...(kind === 'weekly' ? [{
-        type: ApplicationCommandOptionType.Integer as const,
-        name: 'day',
-        description: 'Day of the week to post (defaults to Monday)',
-        choices: Array.from({ length: 7 }, (_, value) => ({ name: format(setDay(0, value), 'EEEE'), value })),
-    }] : []),
+    ...(kind === 'weekly'
+        ? [
+              {
+                  type: ApplicationCommandOptionType.Integer as const,
+                  name: 'day',
+                  description: 'Day of the week to post (defaults to Monday)',
+                  choices: Array.from({ length: 7 }, (_, value) => ({ name: format(setDay(0, value), 'EEEE'), value })),
+              },
+          ]
+        : []),
     {
         type: ApplicationCommandOptionType.Integer,
         name: 'time',
@@ -125,7 +129,7 @@ export const commands: RESTPutAPIApplicationCommandsJSONBody = [
             {
                 type: ApplicationCommandOptionType.Subcommand,
                 name: 'view',
-                description: 'Show this server\'s scheduled posts',
+                description: "Show this server's scheduled posts",
             },
             {
                 type: ApplicationCommandOptionType.Subcommand,

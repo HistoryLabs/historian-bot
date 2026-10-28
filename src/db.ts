@@ -39,7 +39,16 @@ export async function upsertSubscription(db: D1Database, sub: Subscription): Pro
                 weekday = excluded.weekday,
                 next_send_at = excluded.next_send_at`,
         )
-        .bind(sub.guild_id, sub.kind, sub.channel_id, sub.role_id, sub.timezone, sub.hour, sub.weekday, sub.next_send_at)
+        .bind(
+            sub.guild_id,
+            sub.kind,
+            sub.channel_id,
+            sub.role_id,
+            sub.timezone,
+            sub.hour,
+            sub.weekday,
+            sub.next_send_at,
+        )
         .run();
 }
 

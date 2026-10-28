@@ -16,7 +16,8 @@ import { canonicalTimezone, nextSendAt, searchTimezones } from '../timezones';
 type CommandContext = Context<APIChatInputApplicationCommandInteraction>;
 
 // What the bot needs in a channel to post there
-const POST_PERMISSIONS = PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks;
+const POST_PERMISSIONS =
+    PermissionFlagsBits.ViewChannel | PermissionFlagsBits.SendMessages | PermissionFlagsBits.EmbedLinks;
 
 export async function scheduleCommand(ctx: CommandContext): Promise<APIInteractionResponse> {
     const { interaction } = ctx;
@@ -28,7 +29,7 @@ export async function scheduleCommand(ctx: CommandContext): Promise<APIInteracti
     // admins can override that in Integrations settings, so check here too.
     const permissions = BigInt(interaction.member.permissions);
     if ((permissions & (PermissionFlagsBits.ManageGuild | PermissionFlagsBits.Administrator)) === 0n) {
-        return errorReply('You need the **Manage Server** permission to change this server\'s schedules.');
+        return errorReply("You need the **Manage Server** permission to change this server's schedules.");
     }
 
     const options = parseOptions(interaction.data.options);
@@ -45,25 +46,39 @@ export async function scheduleCommand(ctx: CommandContext): Promise<APIInteracti
     }
 }
 
-async function setSchedule(ctx: CommandContext, guildId: string, kind: ScheduleKind, options: ParsedOptions): Promise<APIInteractionResponse> {
+async function setSchedule(
+    ctx: CommandContext,
+    guildId: string,
+    kind: ScheduleKind,
+    options: ParsedOptions,
+): Promise<APIInteractionResponse> {
     const { interaction, env } = ctx;
     const channelId = getString(options, 'channel') ?? interaction.channel.id;
     const hour = getInteger(options, 'time') ?? DEFAULT_HOUR;
-    const weekday = kind === 'weekly' ? getInteger(options, 'day') ?? DEFAULT_WEEKDAY : null;
+    const weekday = kind === 'weekly' ? (getInteger(options, 'day') ?? DEFAULT_WEEKDAY) : null;
     const roleId = getString(options, 'role');
 
     const timezoneInput = getString(options, 'timezone');
     const timezone = timezoneInput ? canonicalTimezone(timezoneInput) : DEFAULT_TIMEZONE;
     if (!timezone) {
-        return errorReply(`\`${timezoneInput}\` isn't a time zone I recognize. Start typing a city, like "New York" or "London", and pick one from the list.`);
+        return errorReply(
+            `\`${timezoneInput}\` isn't a time zone I recognize. Start typing a city, like "New York" or "London", and pick one from the list.`,
+        );
     }
 
     if (channelId === interaction.channel.id) {
-        if (interaction.channel.type !== ChannelType.GuildText && interaction.channel.type !== ChannelType.GuildAnnouncement) {
-            return errorReply('I can only post in text or announcement channels. Use the `channel` option to pick one.');
+        if (
+            interaction.channel.type !== ChannelType.GuildText &&
+            interaction.channel.type !== ChannelType.GuildAnnouncement
+        ) {
+            return errorReply(
+                'I can only post in text or announcement channels. Use the `channel` option to pick one.',
+            );
         }
         if ((BigInt(interaction.app_permissions) & POST_PERMISSIONS) !== POST_PERMISSIONS) {
-            return errorReply('I need the **View Channel**, **Send Messages**, and **Embed Links** permissions in this channel to post here.');
+            return errorReply(
+                'I need the **View Channel**, **Send Messages**, and **Embed Links** permissions in this channel to post here.',
+            );
         }
     } else {
         // We can't see the bot's permissions in other channels, so post a notice there to check
@@ -73,13 +88,15 @@ async function setSchedule(ctx: CommandContext, guildId: string, kind: ScheduleK
             });
         } catch (err) {
             if (err instanceof DiscordError && (err.status === 403 || err.status === 404)) {
-                return errorReply(`I can't post in <#${channelId}>. Make sure I have the **View Channel**, **Send Messages**, and **Embed Links** permissions there.`);
+                return errorReply(
+                    `I can't post in <#${channelId}>. Make sure I have the **View Channel**, **Send Messages**, and **Embed Links** permissions there.`,
+                );
             }
             throw err;
         }
     }
 
-    const existing = (await getSubscriptions(env.DB, guildId)).find(s => s.kind === kind);
+    const existing = (await getSubscriptions(env.DB, guildId)).find((s) => s.kind === kind);
     const nextSend = nextSendAt({ timezone, hour, weekday }, ctx.now);
     const subscription: Subscription = {
         guild_id: guildId,
@@ -101,10 +118,12 @@ async function setSchedule(ctx: CommandContext, guildId: string, kind: ScheduleK
     return {
         type: InteractionResponseType.ChannelMessageWithSource,
         data: {
-            embeds: [embed({
-                title: `${kind === 'daily' ? 'Daily' : 'Weekly'} events ${existing ? 'updated' : 'set up'}!`,
-                description,
-            })],
+            embeds: [
+                embed({
+                    title: `${kind === 'daily' ? 'Daily' : 'Weekly'} events ${existing ? 'updated' : 'set up'}!`,
+                    description,
+                }),
+            ],
             allowed_mentions: { parse: [] },
         },
     };
@@ -113,29 +132,40 @@ async function setSchedule(ctx: CommandContext, guildId: string, kind: ScheduleK
 async function viewSchedules(ctx: CommandContext, guildId: string): Promise<APIInteractionResponse> {
     const subscriptions = await getSubscriptions(ctx.env.DB, guildId);
     if (subscriptions.length === 0) {
-        return reply({
-            embeds: [embed({
-                title: 'Scheduled posts',
-                description: 'This server has no scheduled posts. Set one up with `/schedule daily` or `/schedule weekly`.',
-            })],
-        }, true);
+        return reply(
+            {
+                embeds: [
+                    embed({
+                        title: 'Scheduled posts',
+                        description:
+                            'This server has no scheduled posts. Set one up with `/schedule daily` or `/schedule weekly`.',
+                    }),
+                ],
+            },
+            true,
+        );
     }
 
-    return reply({
-        embeds: [embed({
-            title: 'Scheduled posts',
-            fields: subscriptions.map(sub => ({
-                name: sub.kind === 'daily' ? 'Daily' : 'Weekly',
-                value: `${describe(sub)}\nNext post: ${timestamp(sub.next_send_at)}`,
-            })),
-        })],
-        allowed_mentions: { parse: [] },
-    }, true);
+    return reply(
+        {
+            embeds: [
+                embed({
+                    title: 'Scheduled posts',
+                    fields: subscriptions.map((sub) => ({
+                        name: sub.kind === 'daily' ? 'Daily' : 'Weekly',
+                        value: `${describe(sub)}\nNext post: ${timestamp(sub.next_send_at)}`,
+                    })),
+                }),
+            ],
+            allowed_mentions: { parse: [] },
+        },
+        true,
+    );
 }
 
 async function stopSchedule(ctx: CommandContext, guildId: string, kind: ScheduleKind): Promise<APIInteractionResponse> {
-    const existing = (await getSubscriptions(ctx.env.DB, guildId)).find(s => s.kind === kind);
-    if (!existing || !await deleteSubscription(ctx.env.DB, guildId, kind)) {
+    const existing = (await getSubscriptions(ctx.env.DB, guildId)).find((s) => s.kind === kind);
+    if (!existing || !(await deleteSubscription(ctx.env.DB, guildId, kind))) {
         return errorReply(`This server doesn't have ${kind} posts set up.`);
     }
 
@@ -144,11 +174,14 @@ async function stopSchedule(ctx: CommandContext, guildId: string, kind: Schedule
     });
 }
 
-export function scheduleAutocomplete(ctx: Context<APIApplicationCommandAutocompleteInteraction>): APIInteractionResponse {
+export function scheduleAutocomplete(
+    ctx: Context<APIApplicationCommandAutocompleteInteraction>,
+): APIInteractionResponse {
     const options = parseOptions(ctx.interaction.data.options);
-    const choices = options.focused === 'timezone'
-        ? searchTimezones(getString(options, 'timezone') ?? '', ctx.interaction.locale, ctx.now)
-        : [];
+    const choices =
+        options.focused === 'timezone'
+            ? searchTimezones(getString(options, 'timezone') ?? '', ctx.interaction.locale, ctx.now)
+            : [];
     return { type: InteractionResponseType.ApplicationCommandAutocompleteResult, data: { choices } };
 }
 

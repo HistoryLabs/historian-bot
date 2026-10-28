@@ -30,7 +30,7 @@ function subscription(guildId: string, fields: Partial<Subscription>): Subscript
 function fakeQueue(onSend?: () => Promise<void>) {
     const sent: PostMessage[] = [];
     const queue = {
-        sendBatch: vi.fn(async (messages: Iterable<MessageSendRequest<PostMessage>>) => {
+        sendBatch: vi.fn<(messages: Iterable<MessageSendRequest<PostMessage>>) => Promise<void>>(async (messages) => {
             for (const m of messages) sent.push(m.body);
             await onSend?.();
         }),
@@ -39,7 +39,9 @@ function fakeQueue(onSend?: () => Promise<void>) {
 }
 
 async function nextSendAt(guildId: string, kind = 'daily') {
-    return env.DB.prepare('SELECT next_send_at FROM subscriptions WHERE guild_id = ? AND kind = ?').bind(guildId, kind).first<number>('next_send_at');
+    return env.DB.prepare('SELECT next_send_at FROM subscriptions WHERE guild_id = ? AND kind = ?')
+        .bind(guildId, kind)
+        .first<number>('next_send_at');
 }
 
 describe('enqueueDuePosts', () => {
@@ -50,20 +52,28 @@ describe('enqueueDuePosts', () => {
         // Due now: Chicago noon
         await upsertSubscription(env.DB, subscription('chicago', { next_send_at: at('2026-10-24T17:00:00Z') }));
         // Due an hour ago: 1 AM in Tokyo, which is already the 25th there
-        await upsertSubscription(env.DB, subscription('tokyo', { timezone: 'Asia/Tokyo', hour: 1, next_send_at: at('2026-10-24T16:00:00Z') }));
+        await upsertSubscription(
+            env.DB,
+            subscription('tokyo', { timezone: 'Asia/Tokyo', hour: 1, next_send_at: at('2026-10-24T16:00:00Z') }),
+        );
         // Missed last Monday's weekly post (e.g. an outage)
-        await upsertSubscription(env.DB, subscription('missed', { kind: 'weekly', weekday: 1, next_send_at: at('2026-10-19T17:00:00Z') }));
+        await upsertSubscription(
+            env.DB,
+            subscription('missed', { kind: 'weekly', weekday: 1, next_send_at: at('2026-10-19T17:00:00Z') }),
+        );
         // Not due yet
         await upsertSubscription(env.DB, subscription('later', { next_send_at: at('2026-10-24T18:00:00Z') }));
 
         const { queue, sent } = fakeQueue();
         expect(await enqueueDuePosts({ DB: env.DB, POSTS: queue }, now)).toBe(3);
 
-        expect(sent).toEqual(expect.arrayContaining([
-            { guildId: 'chicago', kind: 'daily', channelId: 'channel-chicago', date: '2026-10-24' },
-            { guildId: 'tokyo', kind: 'daily', channelId: 'channel-tokyo', date: '2026-10-25' },
-            { guildId: 'missed', kind: 'weekly', channelId: 'channel-missed', date: '2026-10-19' },
-        ]));
+        expect(sent).toEqual(
+            expect.arrayContaining([
+                { guildId: 'chicago', kind: 'daily', channelId: 'channel-chicago', date: '2026-10-24' },
+                { guildId: 'tokyo', kind: 'daily', channelId: 'channel-tokyo', date: '2026-10-25' },
+                { guildId: 'missed', kind: 'weekly', channelId: 'channel-missed', date: '2026-10-19' },
+            ]),
+        );
         expect(sent).toHaveLength(3);
 
         expect(await nextSendAt('chicago')).toBe(at('2026-10-25T17:00:00Z'));
@@ -73,7 +83,10 @@ describe('enqueueDuePosts', () => {
         expect(await nextSendAt('later')).toBe(at('2026-10-24T18:00:00Z'));
 
         // Warmed the cache for every date needed: Oct 19th-25th
-        const warmed = calls.filter(c => c.url.startsWith('https://api.wikimedia.org/')).map(c => c.url.slice(-5)).sort();
+        const warmed = calls
+            .filter((c) => c.url.startsWith('https://api.wikimedia.org/'))
+            .map((c) => c.url.slice(-5))
+            .toSorted();
         expect(warmed).toEqual(['10/19', '10/20', '10/21', '10/22', '10/23', '10/24', '10/25']);
     });
 
@@ -89,7 +102,9 @@ describe('enqueueDuePosts', () => {
         await upsertSubscription(env.DB, subscription('changed', { next_send_at: at('2026-10-24T17:00:00Z') }));
 
         // Someone runs /schedule daily time:8 while the posts are being queued
-        const { queue } = fakeQueue(() => upsertSubscription(env.DB, subscription('changed', { hour: 8, next_send_at: at('2026-10-25T13:00:00Z') })));
+        const { queue } = fakeQueue(() =>
+            upsertSubscription(env.DB, subscription('changed', { hour: 8, next_send_at: at('2026-10-25T13:00:00Z') })),
+        );
         await enqueueDuePosts({ DB: env.DB, POSTS: queue }, now);
 
         expect(await nextSendAt('changed')).toBe(at('2026-10-25T13:00:00Z'));

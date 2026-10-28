@@ -12,12 +12,21 @@ export function zonedDate(timezone: string, instant: number): TZDate {
  * after the gap; an hour that happens twice uses the first one (in the Workers
  * runtime, which runs in UTC).
  */
-export function nextSendAt(schedule: { timezone: string, hour: number, weekday: number | null }, after: number): number {
+export function nextSendAt(
+    schedule: { timezone: string; hour: number; weekday: number | null },
+    after: number,
+): number {
     const today = zonedDate(schedule.timezone, after);
     for (let offset = 0; offset <= 7; offset++) {
         const day = addDays(today, offset);
         if (schedule.weekday !== null && day.getDay() !== schedule.weekday) continue;
-        const at = new TZDate(day.getFullYear(), day.getMonth(), day.getDate(), schedule.hour, schedule.timezone).getTime();
+        const at = new TZDate(
+            day.getFullYear(),
+            day.getMonth(),
+            day.getDate(),
+            schedule.hour,
+            schedule.timezone,
+        ).getTime();
         if (at > after) return at;
     }
     throw new Error(`No send time found for ${JSON.stringify(schedule)}`);
@@ -52,39 +61,60 @@ function timezones(): string[] {
 
 // Suggestions shown before the user types anything, keyed by Discord locale
 const LOCALE_ZONES: Record<string, string[]> = {
-    'en-US': ['America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu'],
+    'en-US': [
+        'America/New_York',
+        'America/Chicago',
+        'America/Denver',
+        'America/Los_Angeles',
+        'America/Anchorage',
+        'Pacific/Honolulu',
+    ],
     'en-GB': ['Europe/London'],
-    'de': ['Europe/Berlin'],
-    'fr': ['Europe/Paris'],
+    de: ['Europe/Berlin'],
+    fr: ['Europe/Paris'],
     'es-ES': ['Europe/Madrid'],
     'es-419': ['America/Mexico_City', 'America/Bogota', 'America/Argentina/Buenos_Aires'],
     'pt-BR': ['America/Sao_Paulo'],
-    'it': ['Europe/Rome'],
-    'nl': ['Europe/Amsterdam'],
-    'pl': ['Europe/Warsaw'],
+    it: ['Europe/Rome'],
+    nl: ['Europe/Amsterdam'],
+    pl: ['Europe/Warsaw'],
     'sv-SE': ['Europe/Stockholm'],
-    'ru': ['Europe/Moscow'],
-    'uk': ['Europe/Kyiv'],
-    'tr': ['Europe/Istanbul'],
-    'ja': ['Asia/Tokyo'],
-    'ko': ['Asia/Seoul'],
+    ru: ['Europe/Moscow'],
+    uk: ['Europe/Kyiv'],
+    tr: ['Europe/Istanbul'],
+    ja: ['Asia/Tokyo'],
+    ko: ['Asia/Seoul'],
     'zh-CN': ['Asia/Shanghai'],
     'zh-TW': ['Asia/Taipei'],
-    'hi': ['Asia/Kolkata'],
-    'id': ['Asia/Jakarta'],
-    'vi': ['Asia/Ho_Chi_Minh'],
-    'th': ['Asia/Bangkok'],
+    hi: ['Asia/Kolkata'],
+    id: ['Asia/Jakarta'],
+    vi: ['Asia/Ho_Chi_Minh'],
+    th: ['Asia/Bangkok'],
 };
 
-const COMMON_ZONES = ['UTC', 'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Europe/London', 'Europe/Berlin', 'Asia/Kolkata', 'Asia/Tokyo', 'Australia/Sydney'];
+const COMMON_ZONES = [
+    'UTC',
+    'America/New_York',
+    'America/Chicago',
+    'America/Los_Angeles',
+    'Europe/London',
+    'Europe/Berlin',
+    'Asia/Kolkata',
+    'Asia/Tokyo',
+    'Australia/Sydney',
+];
 
 /** Autocomplete choices for a time zone option (Discord allows at most 25). */
-export function searchTimezones(query: string, locale: string | undefined, now: number): { name: string, value: string }[] {
+export function searchTimezones(
+    query: string,
+    locale: string | undefined,
+    now: number,
+): { name: string; value: string }[] {
     const q = query.trim().toLowerCase().replace(/\s+/g, '_');
     let matches: string[];
 
     if (!q) {
-        matches = [...new Set([...(locale ? LOCALE_ZONES[locale] ?? [] : []), ...COMMON_ZONES])];
+        matches = [...new Set([...(locale ? (LOCALE_ZONES[locale] ?? []) : []), ...COMMON_ZONES])];
     } else {
         const scored: [number, string][] = [];
         for (const zone of timezones()) {
@@ -98,7 +128,7 @@ export function searchTimezones(query: string, locale: string | undefined, now: 
         matches = scored.map(([, zone]) => zone);
     }
 
-    return matches.slice(0, 25).map(zone => ({
+    return matches.slice(0, 25).map((zone) => ({
         name: `${zone.replaceAll('_', ' ')} (${formatOffset(zone, now)})`,
         value: zone,
     }));

@@ -80,7 +80,7 @@ describe('time zone helpers', () => {
 
     it('suggests zones for the user locale before they type', () => {
         expect(searchTimezones('', 'en-GB', Date.now())[0].value).toBe('Europe/London');
-        expect(searchTimezones('', 'en-US', Date.now()).map(r => r.value)).toContain('America/Los_Angeles');
+        expect(searchTimezones('', 'en-US', Date.now()).map((r) => r.value)).toContain('America/Los_Angeles');
     });
 
     it('never returns more than 25 choices', () => {
