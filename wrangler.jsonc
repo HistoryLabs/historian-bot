@@ -1,0 +1,41 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "historian-bot",
+    "main": "src/index.ts",
+    "compatibility_date": "2026-10-01",
+    "observability": { "enabled": true },
+    "vars": {
+        "DISCORD_APPLICATION_ID": "743224756408549457",
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "historian",
+            "database_id": "728b9f1f-9f2a-457b-8d42-bb889a7ad18e",
+            "migrations_dir": "migrations",
+        },
+    ],
+    "triggers": {
+        "crons": [
+            // Every 15 minutes (UTC): queue the posts whose next_send_at has passed
+            "*/15 * * * *",
+            // Daily at 06:00 UTC: refresh server/member counts, top.gg and the About Me
+            "0 6 * * *",
+        ],
+    },
+    "queues": {
+        "producers": [{ "binding": "POSTS", "queue": "historian-posts" }],
+        "consumers": [
+            {
+                "queue": "historian-posts",
+                "max_batch_size": 10,
+                "max_batch_timeout": 5,
+                "max_retries": 3,
+                // Keeps the bot well under Discord's 50 requests/second limit
+                "max_concurrency": 2,
+            },
+        ],
+    },
+    // Secrets (set with `wrangler secret put`, or in .dev.vars locally):
+    //   DISCORD_PUBLIC_KEY, DISCORD_TOKEN, and optionally TOPGG_TOKEN
+}
