@@ -3,3 +3,9 @@
 /.wrangler
 .dev.vars
 .env
+
+# Mongo exports and generated import SQL (contain server data)
+guilds.json
+guilds.bson
+*.sql
+!migrations/*.sql

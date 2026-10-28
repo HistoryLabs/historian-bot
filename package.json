@@ -23,7 +23,8 @@
         "register-commands": "node --env-file=.dev.vars --experimental-strip-types scripts/register-commands.ts",
         "lint": "oxlint",
         "format": "oxfmt",
-        "format:check": "oxfmt --check"
+        "format:check": "oxfmt --check",
+        "import-mongo": "TZ=UTC node --experimental-strip-types --no-warnings scripts/import-mongo.ts"
     },
     "dependencies": {
         "@date-fns/tz": "^1.5.0",

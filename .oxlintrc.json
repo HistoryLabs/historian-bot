@@ -5,7 +5,14 @@
         "correctness": "error",
         "suspicious": "warn"
     },
-    "rules": {},
+    "rules": {
+        "no-underscore-dangle": [
+            "warn",
+            {
+                "allow": ["_id"]
+            }
+        ]
+    },
     "env": {
         "builtin": true
     }
