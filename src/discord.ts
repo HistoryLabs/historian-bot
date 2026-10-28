@@ -78,6 +78,15 @@ export class DiscordError extends Error {
     ) {
         super(`Discord API returned ${status}: ${body}`);
     }
+
+    /** Seconds Discord asked us to wait after a 429, at least 1. */
+    get retryAfter(): number {
+        try {
+            return Math.max(1, Math.ceil(JSON.parse(this.body).retry_after));
+        } catch {
+            return 5;
+        }
+    }
 }
 
 /**

@@ -1,8 +1,10 @@
 import type { APIInteraction } from 'discord-api-types/v10';
+import { STATS_CRON } from './config';
 import type { Env } from './env';
 import { handleInteraction } from './interactions';
 import { type PostMessage, sendPosts } from './posts';
 import { enqueueDuePosts } from './scheduler';
+import { getStats, updateStats } from './stats';
 import { verifyRequest } from './verify';
 
 export default {
@@ -22,6 +24,13 @@ export default {
             return Response.json(response);
         }
 
+        if (request.method === 'GET' && url.pathname === '/stats') {
+            const stats = await getStats(env.DB);
+            const headers = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=3600' };
+            if (!stats) return Response.json({ error: 'Stats have not been collected yet' }, { status: 503, headers });
+            return Response.json(stats, { headers });
+        }
+
         if (request.method === 'GET' && url.pathname === '/') {
             return new Response('Historian Bot is running.');
         }
@@ -30,6 +39,12 @@ export default {
     },
 
     async scheduled(controller, env): Promise<void> {
+        if (controller.cron === STATS_CRON) {
+            const stats = await updateStats(env, controller.scheduledTime);
+            console.log(`Updated stats: ${stats.guilds} servers, ${stats.members} members`);
+            return;
+        }
+
         const queued = await enqueueDuePosts(env, controller.scheduledTime);
         if (queued > 0) console.log(`Queued ${queued} scheduled posts`);
     },

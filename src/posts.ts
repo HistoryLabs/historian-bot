@@ -106,7 +106,7 @@ export async function sendPosts(batch: MessageBatch<PostMessage>, env: Env, now 
             message.ack();
         } catch (err) {
             if (err instanceof DiscordError && err.status === 429) {
-                message.retry({ delaySeconds: retryAfter(err) });
+                message.retry({ delaySeconds: err.retryAfter });
             } else if (err instanceof DiscordError && (err.status === 403 || err.status === 404)) {
                 // Channel deleted or the bot lost access
                 await env.DB.prepare('DELETE FROM subscriptions WHERE guild_id = ? AND kind = ? AND channel_id = ?')
@@ -128,13 +128,4 @@ function mention(roleId: string | null, guildId: string): { content?: string; al
     if (roleId === guildId)
         return { content: '@everyone', allowed_mentions: { parse: [AllowedMentionsTypes.Everyone] } };
     return { content: `<@&${roleId}>`, allowed_mentions: { roles: [roleId] } };
-}
-
-/** Seconds to wait from a 429 response, at least 1. */
-function retryAfter(err: DiscordError): number {
-    try {
-        return Math.max(1, Math.ceil(JSON.parse(err.body).retry_after));
-    } catch {
-        return 5;
-    }
 }

@@ -3,3 +3,5 @@
 DISCORD_APPLICATION_ID=
 DISCORD_PUBLIC_KEY=
 DISCORD_TOKEN=
+# Optional: only set in production so dev bots don't post to the real top.gg listing
+TOPGG_TOKEN=

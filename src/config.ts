@@ -29,5 +29,12 @@ export const WIKI_CACHE_SECONDS = 7 * 24 * 60 * 60;
 
 export const EVENTS_PER_PAGE = 5;
 
+// Must match the daily cron in wrangler.jsonc; every other cron run sends scheduled posts
+export const STATS_CRON = '0 6 * * *';
+
+/** The bot's About Me text, refreshed daily with the server count (Discord allows 400 characters). */
+export const aboutMe = (servers: string) =>
+    `A free history bot that shares historical events from Wikipedia, on demand or on a daily or weekly schedule. Serving ${servers} servers. Try /help!`;
+
 // Year used for calendar dates (month + day) so February 29th is valid
 export const LEAP_YEAR = 2024;

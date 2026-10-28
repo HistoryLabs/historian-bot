@@ -16,8 +16,14 @@
             "migrations_dir": "migrations",
         },
     ],
-    // Every 15 minutes (UTC). Each run queues the posts whose next_send_at has passed.
-    "triggers": { "crons": ["*/15 * * * *"] },
+    "triggers": {
+        "crons": [
+            // Every 15 minutes (UTC): queue the posts whose next_send_at has passed
+            "*/15 * * * *",
+            // Daily at 06:00 UTC: refresh server/member counts, top.gg and the About Me
+            "0 6 * * *",
+        ],
+    },
     "queues": {
         "producers": [{ "binding": "POSTS", "queue": "historian-posts" }],
         "consumers": [
@@ -32,5 +38,5 @@
         ],
     },
     // Secrets (set with `wrangler secret put`, or in .dev.vars locally):
-    //   DISCORD_PUBLIC_KEY, DISCORD_TOKEN
+    //   DISCORD_PUBLIC_KEY, DISCORD_TOKEN, and optionally TOPGG_TOKEN
 }
