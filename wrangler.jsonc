@@ -11,8 +11,7 @@
         {
             "binding": "DB",
             "database_name": "historian",
-            // Placeholder until the real database is created with `wrangler d1 create historian`
-            "database_id": "00000000-0000-0000-0000-000000000000",
+            "database_id": "728b9f1f-9f2a-457b-8d42-bb889a7ad18e",
             "migrations_dir": "migrations",
         },
     ],

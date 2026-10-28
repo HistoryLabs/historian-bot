@@ -1,0 +1,48 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: npm
+            - run: npm ci
+            - run: npm run typecheck
+            - run: npm run lint
+            - run: npm run format:check
+            - run: npm test
+
+    deploy:
+        # Only deploys from main in this repository, never from forks or pull requests
+        if: github.event_name == 'push' && github.repository == 'HistoryLabs/historian-bot'
+        needs: check
+        runs-on: ubuntu-latest
+        environment: production
+        concurrency:
+            group: deploy
+            cancel-in-progress: false
+        steps:
+            - uses: actions/checkout@v5
+            - uses: actions/setup-node@v5
+              with:
+                  node-version: 24
+                  cache: npm
+            - run: npm ci
+            - uses: cloudflare/wrangler-action@v3
+              with:
+                  apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                  accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                  command: |
+                      d1 migrations apply historian --remote
+                      deploy
