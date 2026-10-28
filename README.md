@@ -6,10 +6,6 @@ Historian is a free Discord history bot built for communities to share their lov
 
 For support you can contact me on the [Historian Bot Support Server](https://discord.com/invite/Pj68BQf). If you need to report a bug, you could create an issue instead.
 
-## Roadmap
-
-You can find a roadmap of future features and improvements [here](https://github.com/orgs/HistoryLabs/projects/1).
-
 ## Development
 
 Historian runs on Cloudflare Workers: Discord sends slash commands to the Worker over HTTP, data lives in D1, and events come from Wikipedia's [On this day](https://api.wikimedia.org/wiki/Feed_API/Reference/On_this_day) feed.
@@ -29,7 +25,3 @@ Register slash commands with `npm run register-commands -- --guild <server id>` 
 ## Contributions
 
 Contributions are always welcome. To get started, read the [Contributing Steps](https://github.com/HistoryLabs/historian-bot/blob/main/CONTRIBUTING.md).
-
-## Donations
-
-Any donation is greatly appreciated. You can donate at my [Patreon](https://www.patreon.com/historicaleventsbot).
